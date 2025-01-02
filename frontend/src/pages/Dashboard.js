@@ -38,9 +38,9 @@ function Dashboard() {
           </h2>
           <div className="space-y-4">
             {recentTasks.map((task) => (
-              <div key={task._id} className="border-b pb-2">
-                <p className="font-medium">{task.description}</p>
-                <p className="text-sm text-gray-500">
+              <div key={task.id} className="border-b pb-2">
+                <p key={`${task.id}-desc`} className="font-medium">{task.description}</p>
+                <p key={`${task.id}-date`} className="text-sm text-gray-500">
                   {new Date(task.date).toLocaleDateString()} - {task.hoursWorked} hours
                 </p>
               </div>
