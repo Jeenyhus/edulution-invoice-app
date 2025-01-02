@@ -1,68 +1,66 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: 'http://localhost:5000/api',
   headers: {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': 'http://localhost:3000',
-    'Access-Control-Allow-Credentials': 'true'
+    'Content-Type': 'application/json'
   },
-  withCredentials: true,
-  timeout: 5000
+  // Important: Remove withCredentials if not using cookies
+  withCredentials: false
 });
 
-// Add auth token to requests
-api.interceptors.request.use(
-  (config) => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user?.token) {
-      config.headers.Authorization = `Bearer ${user.token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+// Add a test function to verify connectivity
+const testConnection = async () => {
+  try {
+    const response = await api.get('/test');
+    console.log('Server connection test:', response.data);
+    return true;
+  } catch (error) {
+    console.error('Server connection test failed:', error);
+    return false;
   }
-);
-
-// Add response interceptor for error handling
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Error:', error);
-    if (error.response?.status === 401) {
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
-
-export const authService = {
-  login: (credentials) => api.post('/auth/login', credentials),
-  register: (userData) => api.post('/auth/register', userData),
 };
 
 export const taskService = {
-  getTasks: () => api.get('/tasks'),
+  testConnection,
+  getTasks: async () => {
+    try {
+      console.log('Attempting to fetch tasks...');
+      const response = await api.get('/tasks');
+      console.log('Tasks response:', response.data);
+      return response;
+    } catch (error) {
+      console.error('Error in getTasks:', error);
+      throw error;
+    }
+  },
   createTask: (data) => api.post('/tasks', data),
   updateTask: (id, data) => api.put(`/tasks/${id}`, data),
-  deleteTask: (id) => api.delete(`/tasks/${id}`),
+  deleteTask: (id) => api.delete(`/tasks/${id}`)
 };
 
+// User service
 export const userService = {
   getUsers: () => api.get('/users'),
   createUser: (data) => api.post('/users', data),
   updateUser: (id, data) => api.put(`/users/${id}`, data),
+  deleteUser: (id) => api.delete(`/users/${id}`)
 };
 
+// Auth service
+export const authService = {
+  login: (credentials) => api.post('/auth/login', credentials),
+  register: (userData) => api.post('/auth/register', userData),
+  logout: () => api.post('/auth/logout')
+};
+
+// Invoice service
 export const invoiceService = {
   generateInvoice: (userId, startDate, endDate) => 
-    api.get(`/invoices/${userId}?startDate=${startDate}&endDate=${endDate}`, {
+    api.get(`/invoices/${userId}`, {
+      params: { startDate, endDate },
       responseType: 'blob'
-    }),
+    })
 };
 
-export default api; 
+export default api;

@@ -7,21 +7,37 @@ function Tasks() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    const init = async () => {
+      try {
+        // Test connection first
+        const isConnected = await taskService.testConnection();
+        if (!isConnected) {
+          setError('Could not connect to server');
+          setLoading(false);
+          return;
+        }
 
-  const fetchTasks = async () => {
-    try {
-      const response = await taskService.getTasks();
-      setTasks(response.data);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        // If connected, fetch tasks
+        const response = await taskService.getTasks();
+        setTasks(response.data);
+        setError(null);
+      } catch (error) {
+        console.error('Error:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        });
+        setError('Failed to fetch tasks');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, []);
 
   const handleCreateTask = async (formData) => {
     try {
@@ -56,6 +72,9 @@ function Tasks() {
 
   if (loading) {
     return <div>Loading...</div>;
+  }
+  if (error) {
+    return <div>Error: {error}</div>;
   }
 
   return (

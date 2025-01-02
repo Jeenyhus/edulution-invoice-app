@@ -1,60 +1,62 @@
 const express = require('express');
 const router = express.Router();
-const Task = require('../models/Task');
-const User = require('../models/User');
-const { generateInvoice } = require('../utils/excelGenerator');
+const db = require('../config/db');
+const ExcelJS = require('exceljs');
 
 router.get('/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { startDate, endDate } = req.query;
+
   try {
-    const { startDate, endDate } = req.query;
+    const sql = `
+      SELECT * FROM tasks 
+      WHERE userId = ? 
+      AND date BETWEEN ? AND ?
+      ORDER BY date ASC
+    `;
 
-    // Validate required query parameters
-    if (!startDate || !endDate) {
-      return res.status(400).json({ 
-        message: 'Both startDate and endDate are required query parameters' 
-      });
-    }
-
-    // Validate date format
-    const startDateObj = new Date(startDate);
-    const endDateObj = new Date(endDate);
-
-    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
-      return res.status(400).json({ 
-        message: 'Invalid date format. Please use YYYY-MM-DD format' 
-      });
-    }
-
-    // Validate date range
-    if (startDateObj > endDateObj) {
-      return res.status(400).json({ 
-        message: 'startDate must be before or equal to endDate' 
-      });
-    }
-
-    const user = await User.findById(req.params.userId);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    const query = {
-      userId: req.params.userId,
-      date: {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
+    db.all(sql, [userId, startDate, endDate], async (err, tasks) => {
+      if (err) {
+        console.error('Error fetching tasks for invoice:', err);
+        return res.status(500).json({ message: 'Error generating invoice' });
       }
-    };
 
-    const tasks = await Task.find(query).sort({ date: 1 });
-    const excelBuffer = await generateInvoice(tasks, user);
+      // Create a new Excel workbook
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Invoice');
 
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=invoice-${startDate}-to-${endDate}.xlsx`);
-    res.send(excelBuffer);
+      // Add headers
+      worksheet.columns = [
+        { header: 'Date', key: 'date' },
+        { header: 'Description', key: 'description' },
+        { header: 'Shift', key: 'shift' },
+        { header: 'Start Time', key: 'startTime' },
+        { header: 'End Time', key: 'endTime' },
+        { header: 'Hours Worked', key: 'hoursWorked' }
+      ];
 
+      // Add rows
+      worksheet.addRows(tasks);
+
+      // Set response headers
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=invoice-${startDate}-to-${endDate}.xlsx`
+      );
+
+      // Write to response
+      await workbook.xlsx.write(res);
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Invoice generation error:', error);
+    res.status(500).json({ 
+      message: 'Failed to generate invoice', 
+      error: error.message 
+    });
   }
 });
 

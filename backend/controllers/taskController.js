@@ -1,54 +1,82 @@
-const Task = require('../models/Task');
+const db = require('../config/db');
 
-// Get all tasks
 const getTasks = async (req, res) => {
-  try {
-    const tasks = await Task.find({ userId: req.query.userId }).sort({ date: -1 });
-    res.json(tasks);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// Create new task
-const createTask = async (req, res) => {
-  try {
-    const task = new Task(req.body);
-    const savedTask = await task.save();
-    res.status(201).json(savedTask);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
-// Update task
-const updateTask = async (req, res) => {
-  try {
-    const task = await Task.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-    if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+  console.log('Received GET request for tasks');
+  
+  db.all('SELECT * FROM tasks ORDER BY date DESC', [], (err, tasks) => {
+    if (err) {
+      console.error('Error in getTasks:', err);
+      return res.status(500).json({ 
+        message: 'Error fetching tasks',
+        error: err.message 
+      });
     }
-    res.json(task);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
+    console.log(`Found ${tasks.length} tasks`);
+    res.json(tasks);
+  });
 };
 
-// Delete task
+const createTask = async (req, res) => {
+  console.log('Received POST request for task creation:', req.body);
+  
+  const { description, date, shift, startTime, endTime, hoursWorked, userId } = req.body;
+  
+  const sql = `
+    INSERT INTO tasks (description, date, shift, startTime, endTime, hoursWorked, userId)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+  
+  db.run(sql, [description, date, shift, startTime, endTime, hoursWorked, userId], function(err) {
+    if (err) {
+      console.error('Error creating task:', err);
+      return res.status(400).json({ message: err.message });
+    }
+    
+    // Get the newly created task
+    db.get('SELECT * FROM tasks WHERE id = ?', [this.lastID], (err, task) => {
+      if (err) {
+        console.error('Error fetching new task:', err);
+        return res.status(500).json({ message: err.message });
+      }
+      console.log('Successfully created task:', task);
+      res.status(201).json(task);
+    });
+  });
+};
+
+const updateTask = async (req, res) => {
+  const { description, date, shift, startTime, endTime, hoursWorked } = req.body;
+  
+  const sql = `
+    UPDATE tasks 
+    SET description = ?, date = ?, shift = ?, startTime = ?, endTime = ?, hoursWorked = ?
+    WHERE id = ?
+  `;
+  
+  db.run(sql, [description, date, shift, startTime, endTime, hoursWorked, req.params.id], (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
+    
+    db.get('SELECT * FROM tasks WHERE id = ?', [req.params.id], (err, task) => {
+      if (err) {
+        return res.status(500).json({ message: err.message });
+      }
+      if (!task) {
+        return res.status(404).json({ message: 'Task not found' });
+      }
+      res.json(task);
+    });
+  });
+};
+
 const deleteTask = async (req, res) => {
-  try {
-    const task = await Task.findByIdAndDelete(req.params.id);
-    if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+  db.run('DELETE FROM tasks WHERE id = ?', [req.params.id], (err) => {
+    if (err) {
+      return res.status(500).json({ message: err.message });
     }
     res.json({ message: 'Task deleted' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  });
 };
 
 module.exports = {
