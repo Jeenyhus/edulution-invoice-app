@@ -37,18 +37,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = async () => {
-    try {
-      await authService.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      // Clear auth data regardless of logout API success
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setUser(null);
-      navigate('/login');
-    }
+  const logout = () => {
+    // Remove API call since it's not implemented
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    navigate('/login');
   };
 
   const register = async (userData) => {

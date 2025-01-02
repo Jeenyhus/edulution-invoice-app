@@ -8,6 +8,31 @@ router.get('/:userId', async (req, res) => {
   const { startDate, endDate } = req.query;
 
   try {
+    // Validate dates
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ message: 'Invalid date format' });
+    }
+
+    // Get user name for the title
+    const getUserInfo = () => {
+      return new Promise((resolve, reject) => {
+        db.get('SELECT name, hourlyRate FROM users WHERE id = ?', [userId], (err, user) => {
+          if (err) reject(err);
+          else resolve({
+            name: user?.name || 'User',
+            hourlyRate: user?.hourlyRate || 0
+          });
+        });
+      });
+    };
+
+    const userInfo = await getUserInfo();
+    const date = new Date(startDate);
+    const monthYear = `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+    
     const sql = `
       SELECT * FROM tasks 
       WHERE userId = ? 
@@ -15,7 +40,6 @@ router.get('/:userId', async (req, res) => {
       ORDER BY date ASC
     `;
 
-    // Use promise-based query instead of callback
     const getTasks = () => {
       return new Promise((resolve, reject) => {
         db.all(sql, [userId, startDate, endDate], (err, tasks) => {
@@ -27,22 +51,69 @@ router.get('/:userId', async (req, res) => {
 
     const tasks = await getTasks();
 
-    // Create a new Excel workbook
+    // Create workbook and worksheet
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Invoice');
+    const worksheet = workbook.addWorksheet('Time Sheet');
 
-    // Add headers
+    // Add title
+    worksheet.mergeCells('A1:G1');
+    worksheet.getCell('A1').value = `${userInfo.name} Time Sheet ${monthYear}`;
+    worksheet.getCell('A1').font = { bold: true };
+
+    // Define columns
     worksheet.columns = [
-      { header: 'Date', key: 'date', width: 12 },
-      { header: 'Description', key: 'description', width: 40 },
-      { header: 'Shift', key: 'shift', width: 10 },
-      { header: 'Start Time', key: 'startTime', width: 12 },
-      { header: 'End Time', key: 'endTime', width: 12 },
-      { header: 'Hours Worked', key: 'hoursWorked', width: 15 }
+      { header: 'Date', key: 'date', width: 18 },
+      { header: 'From', key: 'startTime', width: 10 },
+      { header: 'To', key: 'endTime', width: 10 },
+      { header: 'Hours', key: 'hoursWorked', width: 10 },
+      { header: 'Category', key: 'category', width: 15 },
+      { header: 'Extra Time', key: 'extraTime', width: 12 },
+      { header: 'Description', key: 'description', width: 50 }
     ];
 
-    // Add rows
-    worksheet.addRows(tasks);
+    // Style the headers
+    worksheet.getRow(2).font = { bold: true };
+    worksheet.getRow(2).border = {
+      bottom: { style: 'thin' }
+    };
+
+    // Add data rows
+    tasks.forEach(task => {
+      const amount = task.hoursWorked * userInfo.hourlyRate;
+      worksheet.addRow({
+        date: task.date,
+        startTime: task.startTime,
+        endTime: task.endTime,
+        hoursWorked: task.hoursWorked,
+        category: task.category,
+        rate: userInfo.hourlyRate,
+        amount: amount,
+        description: task.description
+      });
+    });
+
+    // Add total hours at the bottom
+    const totalRow = worksheet.rowCount + 2;
+    worksheet.getCell(`A${totalRow}`).value = '';
+    worksheet.getCell(`B${totalRow}`).value = '';
+    worksheet.getCell(`C${totalRow}`).value = '';
+    worksheet.getCell(`D${totalRow}`).value = tasks.reduce((total, task) => {
+      const hours = parseFloat(task.hoursWorked) || 0;
+      return total + hours;
+    }, 0).toFixed(2);
+    worksheet.getCell(`D${totalRow}`).font = { bold: true };
+
+    // Apply borders to all cells
+    worksheet.eachRow((row) => {
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+    });
 
     // Set response headers
     res.setHeader(
@@ -51,7 +122,7 @@ router.get('/:userId', async (req, res) => {
     );
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename=invoice-${startDate}-to-${endDate}.xlsx`
+      `attachment; filename=${userInfo.name.replace(/\s+/g, '-')}-timesheet-${monthYear.replace(/\s+/g, '-')}.xlsx`
     );
 
     // Write to response

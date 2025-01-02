@@ -6,12 +6,14 @@ function Register() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: ''
+    password: '',
+    hourlyRate: ''
   });
   const [errors, setErrors] = useState({
     name: '',
     email: '',
-    password: ''
+    password: '',
+    hourlyRate: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,7 +24,8 @@ function Register() {
     const newErrors = {
       name: '',
       email: '',
-      password: ''
+      password: '',
+      hourlyRate: ''
     };
 
     // Name validation
@@ -46,6 +49,15 @@ function Register() {
       isValid = false;
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
+      isValid = false;
+    }
+
+    // Hourly rate validation
+    if (!formData.hourlyRate) {
+      newErrors.hourlyRate = 'Hourly rate is required';
+      isValid = false;
+    } else if (isNaN(formData.hourlyRate) || parseFloat(formData.hourlyRate) < 0) {
+      newErrors.hourlyRate = 'Please enter a valid hourly rate';
       isValid = false;
     }
 
@@ -155,6 +167,27 @@ function Register() {
               />
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="hourlyRate" className="block text-sm font-medium text-gray-700">
+                Hourly Rate ($)
+              </label>
+              <input
+                id="hourlyRate"
+                name="hourlyRate"
+                type="number"
+                step="0.01"
+                min="0"
+                required
+                className={`mt-1 block w-full px-4 py-3 border ${
+                  errors.hourlyRate ? 'border-red-500' : 'border-gray-200'
+                } rounded-lg focus:ring-black focus:border-black transition-colors text-sm`}
+                value={formData.hourlyRate}
+                onChange={handleChange}
+              />
+              {errors.hourlyRate && (
+                <p className="mt-1 text-sm text-red-600">{errors.hourlyRate}</p>
               )}
             </div>
           </div>

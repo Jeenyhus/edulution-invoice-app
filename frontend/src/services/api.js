@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
+  baseURL: 'http://localhost:5001',
   headers: {
     'Content-Type': 'application/json'
   }
@@ -40,7 +41,9 @@ export const userService = {
   getUsers: () => api.get('/api/users'),
   createUser: (data) => api.post('/api/users', data),
   updateUser: (id, data) => api.put(`/api/users/${id}`, data),
-  deleteUser: (id) => api.delete(`/api/users/${id}`)
+  deleteUser: (id) => api.delete(`/api/users/${id}`),
+  updateHourlyRate: (id, hourlyRate) => 
+    api.put(`/api/users/${id}/hourly-rate`, { hourlyRate })
 };
 
 // Invoice service
