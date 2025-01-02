@@ -1,8 +1,9 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
 
   const handleLogout = async () => {
@@ -12,6 +13,15 @@ function Navbar() {
     } catch (error) {
       console.error('Logout failed:', error);
     }
+  };
+
+  const getLinkClasses = (path) => {
+    const isActive = location.pathname === path;
+    return `inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2 transition-colors duration-200
+      ${isActive 
+        ? 'border-gray-900 text-gray-900' 
+        : 'text-gray-500 border-transparent hover:border-gray-900 hover:text-gray-900'
+      }`;
   };
 
   return (
@@ -30,34 +40,26 @@ function Navbar() {
             <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
               <Link
                 to="/"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2 transition-colors duration-200
-                  hover:border-gray-900 hover:text-gray-900
-                  text-gray-500 border-transparent"
+                className={getLinkClasses('/')}
               >
                 Dashboard
               </Link>
               <Link
                 to="/tasks"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2 transition-colors duration-200
-                  hover:border-gray-900 hover:text-gray-900
-                  text-gray-500 border-transparent"
+                className={getLinkClasses('/tasks')}
               >
                 Tasks
               </Link>
               <Link
                 to="/invoices"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2 transition-colors duration-200
-                  hover:border-gray-900 hover:text-gray-900
-                  text-gray-500 border-transparent"
+                className={getLinkClasses('/invoices')}
               >
                 Invoices
               </Link>
               {user?.role === 'admin' && (
                 <Link
                   to="/users"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2 transition-colors duration-200
-                    hover:border-gray-900 hover:text-gray-900
-                    text-gray-500 border-transparent"
+                  className={getLinkClasses('/users')}
                 >
                   Users
                 </Link>
@@ -80,7 +82,6 @@ function Navbar() {
           {/* User Menu */}
           <div className="hidden sm:flex sm:items-center sm:space-x-6">
             <div className="flex items-center space-x-3">
-              <span className="text-sm font-medium text-gray-700">{user?.name}</span>
               <img
                 src={`https://ui-avatars.com/api/?name=${user?.name}&background=000&color=fff`}
                 alt={user?.name}
@@ -107,26 +108,42 @@ function Navbar() {
         <div className="pt-2 pb-3 space-y-1">
           <Link
             to="/"
-            className="block pl-3 pr-4 py-2 text-base font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+            className={`block pl-3 pr-4 py-2 text-base font-medium ${
+              location.pathname === '/'
+                ? 'text-gray-900 bg-gray-50'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+            }`}
           >
             Dashboard
           </Link>
           <Link
             to="/tasks"
-            className="block pl-3 pr-4 py-2 text-base font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+            className={`block pl-3 pr-4 py-2 text-base font-medium ${
+              location.pathname === '/tasks'
+                ? 'text-gray-900 bg-gray-50'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+            }`}
           >
             Tasks
           </Link>
           <Link
             to="/invoices"
-            className="block pl-3 pr-4 py-2 text-base font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+            className={`block pl-3 pr-4 py-2 text-base font-medium ${
+              location.pathname === '/invoices'
+                ? 'text-gray-900 bg-gray-50'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+            }`}
           >
             Invoices
           </Link>
           {user?.role === 'admin' && (
             <Link
               to="/users"
-              className="block pl-3 pr-4 py-2 text-base font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+              className={`block pl-3 pr-4 py-2 text-base font-medium ${
+                location.pathname === '/users'
+                  ? 'text-gray-900 bg-gray-50'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+              }`}
             >
               Users
             </Link>
