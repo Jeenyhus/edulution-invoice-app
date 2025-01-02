@@ -7,7 +7,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'database.sqlite'));
 // Initialize database schema
 const initializeDb = () => {
   return new Promise((resolve, reject) => {
-    // Create users table
+    // Create users table with hourlyRate column
     db.run(`
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
