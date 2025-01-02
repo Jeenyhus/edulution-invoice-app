@@ -1,6 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import Logo from "../assets/edulution.avif";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -22,13 +21,10 @@ function Navbar() {
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
               <img
-                src={Logo}
+                src="/edulution_logo-removebg-preview.png"
                 alt="Edulution Logo"
-                className="h-8 w-auto"
+                className="h-15 w-auto"
               />
-              <span className="ml-3 text-lg font-semibold text-gray-900 hidden sm:block">
-                Edulution Portal
-              </span>
             </Link>
             
             <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
