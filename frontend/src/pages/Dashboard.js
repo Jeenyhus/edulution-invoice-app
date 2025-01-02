@@ -32,7 +32,7 @@ function Dashboard() {
         <div className="bg-gray-900 rounded-lg shadow-lg overflow-hidden">
           <div className="px-6 py-8 md:px-8 md:py-10">
             <h1 className="text-2xl font-bold text-white mb-2">
-              Welcome back, {user?.name}
+              Welcome back, {user?.name?.split(' ')[0]}
             </h1>
             <p className="text-gray-300">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
