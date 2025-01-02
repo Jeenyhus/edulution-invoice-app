@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { taskService } from '../services/api';
 import TaskForm from '../components/TaskForm';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 function Tasks() {
   const [tasks, setTasks] = useState([]);
@@ -8,6 +9,8 @@ function Tasks() {
   const [editingTask, setEditingTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [taskToDelete, setTaskToDelete] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const fetchTasks = async () => {
     try {
@@ -46,15 +49,26 @@ function Tasks() {
     }
   };
 
-  const handleDeleteTask = async (taskId) => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      try {
-        await taskService.deleteTask(taskId);
-        await fetchTasks();
-      } catch (error) {
-        console.error('Error deleting task:', error);
-      }
+  const handleDeleteClick = (task) => {
+    setTaskToDelete(task);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await taskService.deleteTask(taskToDelete.id);
+      setTasks(tasks.filter(task => task.id !== taskToDelete.id));
+      setError(null);
+      setShowDeleteModal(false);
+      setTaskToDelete(null);
+    } catch (error) {
+      setError('Failed to delete task: ' + error.message);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setTaskToDelete(null);
   };
 
   if (loading) {
@@ -152,7 +166,7 @@ function Tasks() {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDeleteTask(task._id)}
+                        onClick={() => handleDeleteClick(task)}
                         className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 transition-colors duration-200"
                       >
                         <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -194,6 +208,14 @@ function Tasks() {
             </div>
           </div>
         )}
+
+        <ConfirmationModal
+          isOpen={showDeleteModal}
+          onClose={handleDeleteCancel}
+          onConfirm={handleDeleteConfirm}
+          title="Delete Task"
+          message={`Are you sure you want to delete "${taskToDelete?.description}"?`}
+        />
       </div>
     </div>
   );
