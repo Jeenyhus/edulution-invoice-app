@@ -59,16 +59,16 @@ function Tasks() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-red-50 p-4 rounded-lg text-red-800 flex items-center">
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="p-4 rounded-lg text-gray-900 flex items-center border border-gray-200">
           <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -79,60 +79,37 @@ function Tasks() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        <div className="bg-black rounded-2xl shadow-xl overflow-hidden transform transition-all hover:shadow-2xl">
+        <div className="bg-gray-900 rounded-lg shadow-lg overflow-hidden">
           <div className="px-6 py-8 md:px-8 md:py-10 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex-1 text-white">
-              <h2 className="text-2xl font-bold mb-2">Track Your Progress 🚀</h2>
-              <p className="text-gray-300 leading-relaxed">
-                Recording your tasks helps you stay organized and measure your growth. 
-                Keep track of your work hours and watch your productivity soar!
+              <h2 className="text-2xl font-bold mb-2">Track Your Progress</h2>
+              <p className="text-gray-300">
+                Recording your tasks helps you stay organized and measure your growth.
               </p>
             </div>
-            <div className="flex flex-col items-center justify-center bg-white/10 backdrop-blur-sm rounded-xl p-6 text-white border border-white/10 shadow-lg">
+            <div className="flex flex-col items-center justify-center bg-white/10 rounded-lg p-6 text-white">
               <div className="text-4xl font-bold mb-1">{tasks.length}</div>
               <div className="text-sm text-gray-300">Total Tasks</div>
-            </div>
-          </div>
-          <div className="px-6 py-4 bg-white/5 backdrop-blur-sm flex flex-wrap gap-6">
-            <div className="flex items-center text-gray-300 hover:text-white transition-colors">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              Stay consistent
-            </div>
-            <div className="flex items-center text-gray-300 hover:text-white transition-colors">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Build good habits
-            </div>
-            <div className="flex items-center text-gray-300 hover:text-white transition-colors">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Track earnings
             </div>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Tasks Overview
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900">Tasks Overview</h1>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="group relative inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-full text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl"
+            className="inline-flex items-center px-6 py-3 text-sm font-medium rounded-lg text-white bg-gray-900 hover:bg-gray-800 transition-colors duration-200"
           >
-            <svg className="w-5 h-5 mr-2 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
             Add New Task
           </button>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        <div className="bg-white rounded-lg shadow-lg border border-gray-100">
           <ul className="divide-y divide-gray-100">
             {tasks.map((task) => (
               <li key={task.id} className="group hover:bg-gray-50 transition-all duration-200">
@@ -167,7 +144,7 @@ function Tasks() {
                     <div className="flex items-center space-x-3">
                       <button
                         onClick={() => setEditingTask(task)}
-                        className="inline-flex items-center px-4 py-2 border border-gray-200 rounded-full text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
+                        className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 transition-colors duration-200"
                       >
                         <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -176,7 +153,7 @@ function Tasks() {
                       </button>
                       <button
                         onClick={() => handleDeleteTask(task._id)}
-                        className="inline-flex items-center px-4 py-2 border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
+                        className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 transition-colors duration-200"
                       >
                         <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -192,9 +169,9 @@ function Tasks() {
         </div>
 
         {(isModalOpen || editingTask) && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-100">
-              <div className="p-6 border-b border-gray-100 bg-gray-50">
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-100">
                 <h2 className="text-2xl font-semibold text-gray-900">
                   {editingTask ? 'Edit Task' : 'Create New Task'}
                 </h2>
@@ -209,7 +186,7 @@ function Tasks() {
                     setIsModalOpen(false);
                     setEditingTask(null);
                   }}
-                  className="mt-4 inline-flex items-center px-4 py-2 border border-gray-300 rounded-full text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
+                  className="mt-4 px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                 >
                   Cancel
                 </button>
