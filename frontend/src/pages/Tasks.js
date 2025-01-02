@@ -9,41 +9,28 @@ function Tasks() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const fetchTasks = async () => {
+    try {
+      const response = await taskService.getTasks();
+      setTasks(response.data);
+      setError(null);
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+      setError('Failed to fetch tasks');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const init = async () => {
-      try {
-        // Test connection first
-        const isConnected = await taskService.testConnection();
-        if (!isConnected) {
-          setError('Could not connect to server');
-          setLoading(false);
-          return;
-        }
-
-        // If connected, fetch tasks
-        const response = await taskService.getTasks();
-        setTasks(response.data);
-        setError(null);
-      } catch (error) {
-        console.error('Error:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        });
-        setError('Failed to fetch tasks');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    init();
+    fetchTasks();
   }, []);
 
   const handleCreateTask = async (formData) => {
     try {
       await taskService.createTask(formData);
       setIsModalOpen(false);
-      fetchTasks();
+      await fetchTasks();
     } catch (error) {
       console.error('Error creating task:', error);
     }
@@ -53,7 +40,7 @@ function Tasks() {
     try {
       await taskService.updateTask(editingTask._id, formData);
       setEditingTask(null);
-      fetchTasks();
+      await fetchTasks();
     } catch (error) {
       console.error('Error updating task:', error);
     }
@@ -63,7 +50,7 @@ function Tasks() {
     if (window.confirm('Are you sure you want to delete this task?')) {
       try {
         await taskService.deleteTask(taskId);
-        fetchTasks();
+        await fetchTasks();
       } catch (error) {
         console.error('Error deleting task:', error);
       }

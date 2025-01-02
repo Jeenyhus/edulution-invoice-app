@@ -1,50 +1,42 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const cors = require('cors');
-const corsMiddleware = require('./middleware/corsMiddleware');
-require('./config/db'); // This will initialize the SQLite database
+const { protect } = require('./middleware/authMiddleware');
 
 dotenv.config();
 
 const app = express();
 
-// Enable CORS for all routes
-app.use(cors({
-  origin: 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false
-}));
-
-// Apply custom CORS middleware
-app.use(corsMiddleware);
-
 // Basic middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Test route to verify server is working
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'Server is working' });
+// Add logging middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`, {
+    body: req.method !== 'GET' ? req.body : undefined,
+    headers: req.headers
+  });
+  next();
 });
 
-// Routes
-app.use('/api/tasks', require('./routes/taskRoutes'));
-app.use('/api/users', require('./routes/userRoutes'));
+// Public routes (no auth required)
 app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/invoices', require('./routes/invoiceRoutes'));
+
+// Protected routes (require authentication)
+app.use('/api/tasks', protect, require('./routes/taskRoutes'));
+app.use('/api/users', protect, require('./routes/userRoutes'));
+app.use('/api/invoices', protect, require('./routes/invoiceRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ 
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
+  console.error('Error:', err);
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal Server Error',
+    error: process.env.NODE_ENV === 'development' ? err : {}
   });
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log('CORS enabled for http://localhost:3000');
 });

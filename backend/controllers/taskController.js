@@ -1,32 +1,34 @@
-const db = require('../config/db');
+const Task = require('../models/Task');
+const db = Task.db;
 
 const getTasks = async (req, res) => {
   console.log('Received GET request for tasks');
   
-  db.all('SELECT * FROM tasks ORDER BY date DESC', [], (err, tasks) => {
-    if (err) {
-      console.error('Error in getTasks:', err);
-      return res.status(500).json({ 
-        message: 'Error fetching tasks',
-        error: err.message 
-      });
-    }
+  try {
+    const tasks = await Task.getAllTasks();
     console.log(`Found ${tasks.length} tasks`);
     res.json(tasks);
-  });
+  } catch (err) {
+    console.error('Error in getTasks:', err);
+    return res.status(500).json({ 
+      message: 'Error fetching tasks',
+      error: err.message 
+    });
+  }
 };
 
 const createTask = async (req, res) => {
   console.log('Received POST request for task creation:', req.body);
   
-  const { description, date, shift, startTime, endTime, hoursWorked, userId } = req.body;
+  const { description, date, shift, startTime, endTime, hoursWorked, category } = req.body;
+  const userId = req.user.id; // Get userId from authenticated user
   
   const sql = `
-    INSERT INTO tasks (description, date, shift, startTime, endTime, hoursWorked, userId)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO tasks (description, date, shift, startTime, endTime, hoursWorked, category, userId)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
   
-  db.run(sql, [description, date, shift, startTime, endTime, hoursWorked, userId], function(err) {
+  db.run(sql, [description, date, shift, startTime, endTime, hoursWorked, category, userId], function(err) {
     if (err) {
       console.error('Error creating task:', err);
       return res.status(400).json({ message: err.message });

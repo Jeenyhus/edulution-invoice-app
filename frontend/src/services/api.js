@@ -1,39 +1,64 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json'
-  },
-  // Important: Remove withCredentials if not using cookies
-  withCredentials: false
+  }
 });
 
-// Add a test function to verify connectivity
-const testConnection = async () => {
-  try {
-    const response = await api.get('/test');
-    console.log('Server connection test:', response.data);
-    return true;
-  } catch (error) {
-    console.error('Server connection test failed:', error);
-    return false;
+// Add request interceptor for debugging
+api.interceptors.request.use(request => {
+  // Don't add auth header for register and login routes
+  if (!request.url.includes('/auth/')) {
+    const token = localStorage.getItem('token');
+    if (token) {
+      request.headers.Authorization = `Bearer ${token}`;
+    }
   }
-};
+  console.log('Starting Request:', {
+    url: request.url,
+    method: request.method,
+    data: request.data
+  });
+  return request;
+});
 
-export const taskService = {
-  testConnection,
-  getTasks: async () => {
+// Add response interceptor for debugging
+api.interceptors.response.use(
+  response => {
+    console.log('Response:', response.data);
+    return response;
+  },
+  error => {
+    console.error('API Error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data
+    });
+    return Promise.reject(error);
+  }
+);
+
+// Auth service
+export const authService = {
+  register: async (userData) => {
+    console.log('Registering user:', userData);
     try {
-      console.log('Attempting to fetch tasks...');
-      const response = await api.get('/tasks');
-      console.log('Tasks response:', response.data);
+      const response = await api.post('/auth/register', userData);
       return response;
     } catch (error) {
-      console.error('Error in getTasks:', error);
+      console.error('Registration error in service:', error);
       throw error;
     }
   },
+  login: (credentials) => api.post('/auth/login', credentials),
+  logout: () => api.post('/auth/logout')
+};
+
+// Task service
+export const taskService = {
+  getTasks: () => api.get('/tasks'),
   createTask: (data) => api.post('/tasks', data),
   updateTask: (id, data) => api.put(`/tasks/${id}`, data),
   deleteTask: (id) => api.delete(`/tasks/${id}`)
@@ -45,13 +70,6 @@ export const userService = {
   createUser: (data) => api.post('/users', data),
   updateUser: (id, data) => api.put(`/users/${id}`, data),
   deleteUser: (id) => api.delete(`/users/${id}`)
-};
-
-// Auth service
-export const authService = {
-  login: (credentials) => api.post('/auth/login', credentials),
-  register: (userData) => api.post('/auth/register', userData),
-  logout: () => api.post('/auth/logout')
 };
 
 // Invoice service
