@@ -1,15 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const {
-  getUsers,
-  getUserById,
-  createUser,
-  updateUser
-} = require('../controllers/userController');
+const { getUsers, getUserById } = require('../controllers/userController');
 
+// Add logging middleware
+router.use((req, res, next) => {
+  console.log(`${req.method} ${req.originalUrl}`, {
+    headers: req.headers,
+    body: req.body
+  });
+  next();
+});
+
+// Define routes
 router.get('/', getUsers);
 router.get('/:id', getUserById);
-router.post('/', createUser);
-router.put('/:id', updateUser);
 
 module.exports = router;

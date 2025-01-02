@@ -1,5 +1,5 @@
 const Task = require('../models/Task');
-const db = Task.db;
+const { db } = require('../config/db');
 
 const getTasks = async (req, res) => {
   console.log('Received GET request for tasks');
@@ -20,65 +20,65 @@ const getTasks = async (req, res) => {
 const createTask = async (req, res) => {
   console.log('Received POST request for task creation:', req.body);
   
-  const { description, date, shift, startTime, endTime, hoursWorked, category } = req.body;
-  const userId = req.user.id; // Get userId from authenticated user
-  
-  const sql = `
-    INSERT INTO tasks (description, date, shift, startTime, endTime, hoursWorked, category, userId)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-  
-  db.run(sql, [description, date, shift, startTime, endTime, hoursWorked, category, userId], function(err) {
-    if (err) {
-      console.error('Error creating task:', err);
-      return res.status(400).json({ message: err.message });
-    }
+  try {
+    const { description, date, shift, startTime, endTime, hoursWorked, category } = req.body;
+    const userId = req.user.id;
     
-    // Get the newly created task
-    db.get('SELECT * FROM tasks WHERE id = ?', [this.lastID], (err, task) => {
-      if (err) {
-        console.error('Error fetching new task:', err);
-        return res.status(500).json({ message: err.message });
-      }
-      console.log('Successfully created task:', task);
-      res.status(201).json(task);
+    const taskId = await Task.createTask({
+      description,
+      date,
+      shift,
+      startTime,
+      endTime,
+      hoursWorked,
+      category,
+      userId
     });
-  });
+    
+    const newTask = await Task.getTaskById(taskId);
+    res.status(201).json(newTask);
+  } catch (err) {
+    console.error('Error creating task:', err);
+    res.status(500).json({ 
+      message: 'Error creating task',
+      error: err.message 
+    });
+  }
 };
 
 const updateTask = async (req, res) => {
-  const { description, date, shift, startTime, endTime, hoursWorked } = req.body;
-  
-  const sql = `
-    UPDATE tasks 
-    SET description = ?, date = ?, shift = ?, startTime = ?, endTime = ?, hoursWorked = ?
-    WHERE id = ?
-  `;
-  
-  db.run(sql, [description, date, shift, startTime, endTime, hoursWorked, req.params.id], (err) => {
-    if (err) {
-      return res.status(400).json({ message: err.message });
+  try {
+    const { id } = req.params;
+    const changes = await Task.updateTask(id, req.body);
+    if (changes === 0) {
+      return res.status(404).json({ message: 'Task not found' });
     }
-    
-    db.get('SELECT * FROM tasks WHERE id = ?', [req.params.id], (err, task) => {
-      if (err) {
-        return res.status(500).json({ message: err.message });
-      }
-      if (!task) {
-        return res.status(404).json({ message: 'Task not found' });
-      }
-      res.json(task);
+    const updatedTask = await Task.getTaskById(id);
+    res.json(updatedTask);
+  } catch (err) {
+    console.error('Error updating task:', err);
+    res.status(500).json({ 
+      message: 'Error updating task',
+      error: err.message 
     });
-  });
+  }
 };
 
 const deleteTask = async (req, res) => {
-  db.run('DELETE FROM tasks WHERE id = ?', [req.params.id], (err) => {
-    if (err) {
-      return res.status(500).json({ message: err.message });
+  try {
+    const { id } = req.params;
+    const changes = await Task.deleteTask(id);
+    if (changes === 0) {
+      return res.status(404).json({ message: 'Task not found' });
     }
-    res.json({ message: 'Task deleted' });
-  });
+    res.json({ message: 'Task deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting task:', err);
+    res.status(500).json({ 
+      message: 'Error deleting task',
+      error: err.message 
+    });
+  }
 };
 
 module.exports = {

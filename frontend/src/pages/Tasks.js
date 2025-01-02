@@ -38,7 +38,7 @@ function Tasks() {
 
   const handleUpdateTask = async (formData) => {
     try {
-      await taskService.updateTask(editingTask._id, formData);
+      await taskService.updateTask(editingTask.id, formData);
       setEditingTask(null);
       await fetchTasks();
     } catch (error) {
@@ -80,7 +80,7 @@ function Tasks() {
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
         <ul className="divide-y divide-gray-200">
           {tasks.map((task) => (
-            <li key={task._id} className="px-6 py-4">
+            <li key={task.id} className="px-6 py-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-900">{task.description}</p>

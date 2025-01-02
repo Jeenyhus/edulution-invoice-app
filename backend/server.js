@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const { protect } = require('./middleware/authMiddleware');
+const { initializeDb } = require('./config/db');
 
 dotenv.config();
 
@@ -36,7 +37,24 @@ app.use((err, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+const PORT = process.env.PORT || 5001;
+
+// Initialize database before starting server
+const start = async () => {
+  try {
+    await initializeDb();
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+start();
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Rejection:', err);
 });

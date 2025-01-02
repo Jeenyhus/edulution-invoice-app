@@ -1,21 +1,28 @@
-const db = require('../config/db');
+const { db } = require('../config/db');
 
-// Create users table
-db.run(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    role TEXT DEFAULT 'user',
-    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`, (err) => {
-  if (err) {
-    console.error('Error creating users table:', err);
-  } else {
-    console.log('Users table ready');
+module.exports = {
+  getAllUsers: () => {
+    return new Promise((resolve, reject) => {
+      db.all('SELECT id, name, email, role, hourlyRate, createdAt FROM users', [], (err, users) => {
+        if (err) {
+          console.error('Error fetching users:', err);
+          reject(err);
+        } else {
+          resolve(users || []);
+        }
+      });
+    });
+  },
+  getUserById: (id) => {
+    return new Promise((resolve, reject) => {
+      db.get('SELECT id, name, email, role, hourlyRate, createdAt FROM users WHERE id = ?', [id], (err, user) => {
+        if (err) {
+          console.error('Error fetching user:', err);
+          reject(err);
+        } else {
+          resolve(user);
+        }
+      });
+    });
   }
-});
-
-module.exports = db; 
+}; 
