@@ -21,6 +21,8 @@ function Invoices() {
       setUsers(response.data);
     } catch (error) {
       console.error('Error fetching users:', error);
+      alert('Unable to load users. Please refresh the page or try again later.');
+      setUsers([]);
     } finally {
       setLoading(false);
     }
