@@ -1,6 +1,7 @@
 {
   "name": "edulution-invoice-app",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
@@ -11,8 +12,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
-  "devDependencies": {
-    "concurrently": "^9.1.2"
+  "dependencies": {
+    "concurrently": "^8.2.2"
   }
 }
