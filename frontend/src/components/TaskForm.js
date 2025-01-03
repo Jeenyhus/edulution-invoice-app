@@ -58,7 +58,28 @@ function TaskForm({ onSubmit, initialData = null }) {
       return;
     }
     
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => {
+      const newData = { ...prev, [name]: value };
+      
+      // Calculate hours worked when start or end time changes
+      if (name === 'startTime' || name === 'endTime') {
+        if (newData.startTime && newData.endTime) {
+          const start = new Date(`1970-01-01T${newData.startTime}`);
+          const end = new Date(`1970-01-01T${newData.endTime}`);
+          let diff = (end - start) / (1000 * 60 * 60); // Convert milliseconds to hours
+          
+          // Handle cases where end time is on the next day
+          if (diff < 0) {
+            diff += 24;
+          }
+          
+          // Round to nearest 0.5
+          newData.hoursWorked = Math.round(diff * 2) / 2;
+        }
+      }
+      
+      return newData;
+    });
   };
 
   return (
@@ -137,10 +158,9 @@ function TaskForm({ onSubmit, initialData = null }) {
             type="number"
             name="hoursWorked"
             value={formData.hoursWorked}
-            onChange={handleChange}
+            readOnly
             step="0.5"
-            className="mt-2 block w-full rounded-md border-gray-200 bg-white px-4 py-2 text-gray-900 shadow-sm hover:border-gray-900 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
-            required
+            className="mt-2 block w-full rounded-md border-gray-200 bg-gray-100 px-4 py-2 text-gray-900 shadow-sm"
           />
         </div>
       </div>
