@@ -82,9 +82,14 @@ function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="max-w-md w-full space-y-6 p-8">
+      <div className="max-w-md w-full space-y-6 p-8 bg-white rounded-lg shadow-lg">
         <div>
-          <h2 className="text-center text-3xl font-light text-gray-900">
+          <img
+            src="/favicon_confluence.png"
+            alt="Logo"
+            className="h-12 mx-auto mb-6"
+          />
+          <h2 className="text-center text-3xl font-light text-black">
             Welcome Back
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
@@ -104,7 +109,7 @@ function Login() {
                 required
                 className={`mt-1 block w-full px-4 py-3 border ${
                   errors.email ? 'border-red-500' : 'border-gray-200'
-                } rounded-lg focus:ring-black focus:border-black transition-colors text-sm`}
+                } rounded-lg focus:ring-[#0072cd] focus:border-[#0072cd] transition-colors text-sm`}
                 value={credentials.email}
                 onChange={handleChange}
               />
@@ -125,7 +130,7 @@ function Login() {
                 required
                 className={`mt-1 block w-full px-4 py-3 border ${
                   errors.password ? 'border-red-500' : 'border-gray-200'
-                } rounded-lg focus:ring-black focus:border-black transition-colors text-sm`}
+                } rounded-lg focus:ring-[#0072cd] focus:border-[#0072cd] transition-colors text-sm`}
                 value={credentials.password}
                 onChange={handleChange}
               />
@@ -151,7 +156,7 @@ function Login() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors ${
+              className={`w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-[#0072cd] hover:bg-[#005ba3] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0072cd] transition-colors ${
                 loading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
@@ -168,7 +173,7 @@ function Login() {
         </form>
         <div className="text-sm text-center">
           <span className="text-gray-500">Don't have an account? </span>
-          <Link to="/register" className="font-medium text-gray-900 hover:text-gray-700 transition-colors">
+          <Link to="/register" className="font-medium text-[#0072cd] hover:text-[#005ba3] transition-colors">
             Register here
           </Link>
         </div>

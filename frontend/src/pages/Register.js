@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 
+
 function Register() {
   const [formData, setFormData] = useState({
     name: '',
@@ -132,10 +133,15 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl w-full">
-        <div className="flex flex-col items-center mb-8">
-          <h2 className="text-3xl font-light text-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-white py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">
+        <div className="flex flex-col items-center">
+          <img
+            src='/favicon_confluence.png'
+            alt="Logo"
+            className="h-12 mb-4"
+          />
+          <h2 className="text-3xl font-light text-black">
             Create Account
           </h2>
           <p className="mt-2 text-sm text-gray-600">
@@ -158,7 +164,7 @@ function Register() {
                   required
                   className={`mt-1 px-3 py-2 border ${
                     errors.name ? 'border-red-500' : 'border-gray-300'
-                  } rounded-md focus:ring-1 focus:ring-black focus:border-black`}
+                  } rounded-md focus:ring-1 focus:ring-[#0072cd] focus:border-[#0072cd]`}
                   value={formData.name}
                   onChange={handleChange}
                 />
@@ -224,8 +230,8 @@ function Register() {
                 )}
               </div>
 
-              <div>
-                <label htmlFor="hourlyRate" className="block text-sm font-medium text-gray-700">
+              <div className="flex flex-col">
+                <label htmlFor="hourlyRate" className="text-sm font-medium text-gray-700">
                   Hourly Rate (ZMW)
                 </label>
                 <input
@@ -235,9 +241,14 @@ function Register() {
                   value={formData.hourlyRate}
                   onChange={handleChange}
                   placeholder="Enter rate in ZMW"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black sm:text-sm"
+                  className={`mt-1 px-3 py-2 border ${
+                    errors.hourlyRate ? 'border-red-500' : 'border-gray-300'
+                  } rounded-md focus:ring-1 focus:ring-[#0072cd] focus:border-[#0072cd]`}
                   required
                 />
+                {errors.hourlyRate && (
+                  <p className="mt-1 text-sm text-red-600">{errors.hourlyRate}</p>
+                )}
               </div>
             </div>
 
@@ -323,7 +334,7 @@ function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full md:w-1/2 py-2 px-4 border border-transparent rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full md:w-1/2 py-2 px-4 border border-transparent rounded-md text-white bg-[#0072cd] hover:bg-[#0066b8] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0072cd] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <svg className="animate-spin h-5 w-5 mx-auto text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -337,7 +348,7 @@ function Register() {
             
             <div className="mt-4 flex items-center space-x-1 text-sm">
               <span className="text-gray-500">Already have an account?</span>
-              <Link to="/login" className="font-medium text-black hover:text-gray-700">
+              <Link to="/login" className="font-medium text-[#0072cd] hover:text-[#0066b8]">
                 Sign in
               </Link>
             </div>
