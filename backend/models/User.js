@@ -1,6 +1,6 @@
 const { db } = require('../config/db');
 
-module.exports = {
+const User = {
   getAllUsers: () => {
     return new Promise((resolve, reject) => {
       db.all(`
@@ -47,5 +47,46 @@ module.exports = {
         }
       });
     });
+  },
+
+  updateUser: (id, userData) => {
+    return new Promise((resolve, reject) => {
+      const {
+        name,
+        email,
+        hourlyRate,
+        career,
+        bankName,
+        branchCode,
+        accountNumber,
+        address,
+        phoneNumber
+      } = userData;
+
+      db.run(`
+        UPDATE users 
+        SET name = ?, 
+            email = ?, 
+            hourlyRate = ?,
+            career = ?,
+            bankName = ?,
+            branchCode = ?,
+            accountNumber = ?,
+            address = ?,
+            phoneNumber = ?
+        WHERE id = ?`,
+        [name, email, hourlyRate, career, bankName, branchCode, accountNumber, address, phoneNumber, id],
+        function(err) {
+          if (err) {
+            console.error('Error updating user:', err);
+            reject(err);
+          } else {
+            resolve(this.changes);
+          }
+        }
+      );
+    });
   }
-}; 
+};
+
+module.exports = User; 

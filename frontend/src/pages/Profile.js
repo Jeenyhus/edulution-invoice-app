@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { userService } from '../services/api';
+import ProfileForm from '../components/ProfileForm';
 
 function Profile() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -23,6 +25,16 @@ function Profile() {
 
     fetchProfile();
   }, []);
+
+  const handleUpdateProfile = async (updatedData) => {
+    try {
+      const response = await userService.updateProfile(updatedData);
+      setProfile(response.data);
+      setIsEditing(false);
+    } catch (error) {
+      setError('Failed to update profile');
+    }
+  };
 
   if (loading) {
     return (
@@ -53,7 +65,15 @@ function Profile() {
       <div className="max-w-3xl mx-auto">
         <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg font-medium leading-6 text-gray-900">Profile Information</h3>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-medium leading-6 text-gray-900">Profile Information</h3>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800"
+              >
+                Edit Profile
+              </button>
+            </div>
             
             <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
               <div>
@@ -98,7 +118,59 @@ function Profile() {
             </div>
           </div>
         </div>
+
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="bg-white shadow rounded-lg p-6">
+            <h4 className="text-lg font-medium text-gray-900 mb-4">Your Statistics</h4>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Total Tasks</span>
+                <span className="text-2xl font-semibold">123</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Hours This Month</span>
+                <span className="text-2xl font-semibold">45h</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Earnings This Month</span>
+                <span className="text-2xl font-semibold text-green-600">${(45 * profile?.hourlyRate || 0).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white shadow rounded-lg p-6">
+            <h4 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h4>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="flex-shrink-0">
+                  <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <svg className="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Completed Task: Database Migration</p>
+                  <p className="text-sm text-gray-500">2 hours ago</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {isEditing && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h2 className="text-xl font-semibold mb-4">Edit Profile</h2>
+            <ProfileForm
+              onSubmit={handleUpdateProfile}
+              initialData={profile}
+              onCancel={() => setIsEditing(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
