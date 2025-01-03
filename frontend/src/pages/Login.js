@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 function Login() {
@@ -15,6 +15,29 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const location = useLocation();
+  const [showLogoutSuccess, setShowLogoutSuccess] = useState(false);
+  const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
+
+  useEffect(() => {
+    if (location.state?.showLogoutMessage) {
+      setShowLogoutSuccess(true);
+      const timer = setTimeout(() => {
+        setShowLogoutSuccess(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [location]);
+
+  useEffect(() => {
+    if (location.state?.showRegistrationSuccess) {
+      setShowRegistrationSuccess(true);
+      const timer = setTimeout(() => {
+        setShowRegistrationSuccess(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [location]);
 
   const validateForm = () => {
     let isValid = true;
@@ -72,7 +95,7 @@ function Login() {
 
     try {
       await login(credentials.email, credentials.password);
-      navigate('/dashboard');
+      navigate('/dashboard', { state: { showSuccessMessage: true } });
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to login');
     } finally {
@@ -82,6 +105,40 @@ function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
+      {showLogoutSuccess && (
+        <div className="fixed top-4 right-4 bg-green-50 p-4 rounded-md shadow-lg">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-green-800">
+                Successfully logged out. See you soon!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showRegistrationSuccess && (
+        <div className="fixed top-4 right-4 bg-green-50 p-4 rounded-md shadow-lg">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-green-800">
+                Account created successfully! Please log in.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="max-w-md w-full space-y-6 p-8 bg-white rounded-lg shadow-lg">
         <div>
           <img

@@ -38,11 +38,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    // Remove API call since it's not implemented
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
-    navigate('/login');
+    navigate('/login', { state: { showLogoutMessage: true } });
   };
 
   const register = async (userData) => {
