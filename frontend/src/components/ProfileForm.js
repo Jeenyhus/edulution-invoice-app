@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function ProfileForm({ onSubmit, initialData, onCancel }) {
   const [formData, setFormData] = useState(initialData);
@@ -6,16 +8,24 @@ function ProfileForm({ onSubmit, initialData, onCancel }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Convert hourlyRate to number before submitting
+    const hourlyRate = parseFloat(formData.hourlyRate);
+    
+    // Validate hourly rate
+    if (isNaN(hourlyRate) || hourlyRate <= 0) {
+      toast.error('Please enter a valid hourly rate greater than 0');
+      return;
+    }
+
     const updatedData = {
       ...formData,
-      hourlyRate: parseFloat(formData.hourlyRate)
+      hourlyRate: hourlyRate
     };
 
     try {
       await onSubmit(updatedData);
     } catch (error) {
       console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
     }
   };
 

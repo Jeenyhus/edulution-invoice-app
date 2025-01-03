@@ -10,6 +10,7 @@ import Register from './pages/Register';
 import { useEffect } from 'react';
 import Profile from './pages/Profile';
 import LandingPage from './pages/LandingPage';
+import { ToastContainer } from 'react-toastify';
 
 function App() {
   return (
@@ -70,6 +71,7 @@ function App() {
               }
             />
           </Routes>
+          <ToastContainer position="top-right" autoClose={3000} />
         </div>
       </AuthProvider>
     </Router>

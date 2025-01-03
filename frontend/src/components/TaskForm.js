@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { taskService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function TaskForm({ onSubmit, initialData = null }) {
   const { user } = useAuth();
@@ -39,16 +41,54 @@ function TaskForm({ onSubmit, initialData = null }) {
     checkExistingShifts();
   }, [formData.date]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Check if shift is already taken
-    if (existingShifts[formData.shift] && !initialData) {
-      alert(`You already have a task recorded for the ${formData.shift} shift on ${formData.date}. Only one task per shift is allowed.`);
-      return;
+    try {
+      // Validate required fields
+      if (!formData.date || !formData.shift || !formData.startTime || !formData.endTime || !formData.description) {
+        toast.error('Please fill in all required fields');
+        return;
+      }
+
+      // Validate hours worked
+      if (formData.hoursWorked <= 0) {
+        toast.error('Invalid time range. End time must be after start time.');
+        return;
+      }
+
+      // Check if shift is already taken (only for new tasks)
+      if (existingShifts[formData.shift] && !initialData) {
+        toast.error(`You already have a task recorded for the ${formData.shift} shift on ${formData.date}`);
+        return;
+      }
+
+      await onSubmit(formData);
+    } catch (error) {
+      console.error('Error submitting task:', error);
+      toast.error(error.response?.data?.message || 'Failed to submit task');
+    }
+  };
+
+  const calculateHoursWorked = (startTime, endTime) => {
+    if (!startTime || !endTime) return 0;
+    
+    const start = new Date(`1970-01-01T${startTime}`);
+    const end = new Date(`1970-01-01T${endTime}`);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return 0;
     }
     
-    onSubmit(formData);
+    let diff = (end - start) / (1000 * 60 * 60); // Convert milliseconds to hours
+    
+    // Handle cases where end time is on the next day
+    if (diff < 0) {
+      diff += 24;
+    }
+    
+    // Round to nearest 0.5
+    return Math.round(diff * 2) / 2;
   };
 
   const handleChange = (e) => {
@@ -63,21 +103,8 @@ function TaskForm({ onSubmit, initialData = null }) {
     setFormData(prev => {
       const newData = { ...prev, [name]: value };
       
-      // Calculate hours worked when start or end time changes
       if (name === 'startTime' || name === 'endTime') {
-        if (newData.startTime && newData.endTime) {
-          const start = new Date(`1970-01-01T${newData.startTime}`);
-          const end = new Date(`1970-01-01T${newData.endTime}`);
-          let diff = (end - start) / (1000 * 60 * 60); // Convert milliseconds to hours
-          
-          // Handle cases where end time is on the next day
-          if (diff < 0) {
-            diff += 24;
-          }
-          
-          // Round to nearest 0.5
-          newData.hoursWorked = Math.round(diff * 2) / 2;
-        }
+        newData.hoursWorked = calculateHoursWorked(newData.startTime, newData.endTime);
       }
       
       return newData;

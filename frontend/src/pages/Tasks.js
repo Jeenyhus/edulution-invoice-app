@@ -117,11 +117,11 @@ function Tasks() {
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="relative p-8">
             <div className="max-w-3xl relative z-10">
-              <h1 className="text-3xl font-bold text-[#0072cd] mb-2">
+              <h1 className="text-3xl font-bold text-black mb-2">
                 Task Management
               </h1>
               <p className="text-gray-600 text-lg mb-4">
-                Track and manage your tasks efficiently
+                Track and manage your tasks efficiently, and keep track of your earnings.
               </p>
               <div className="flex items-center space-x-4">
                 <button

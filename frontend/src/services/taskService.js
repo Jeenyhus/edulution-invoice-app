@@ -13,12 +13,19 @@ const taskService = {
   },
 
   createTask: async (taskData) => {
-    const response = await axios.post(`${API_URL}/tasks`, taskData, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
+    try {
+      const response = await axios.post(`${API_URL}/tasks`, taskData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      return response;
+    } catch (error) {
+      if (error.response?.data?.message) {
+        throw error;
       }
-    });
-    return response.data;
+      throw new Error('Network error while creating task');
+    }
   },
 
   updateTask: async (id, taskData) => {

@@ -1,14 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { taskService } from '../services/api';
 import { userService } from '../services/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import TaskForm from '../components/TaskForm';
-
-const truncateDescription = (description, maxLength = 35) => {
-  if (!description) return '';
-  if (description.length <= maxLength) return description;
-  return description.substring(0, maxLength) + '...';
-};
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Dashboard() {
   const [recentTasks, setRecentTasks] = useState([]);
@@ -22,8 +18,31 @@ function Dashboard() {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const location = useLocation();
   const [showSuccess, setShowSuccess] = useState(false);
+  const [dashboardStats, setDashboardStats] = useState({
+    totalHours: 0,
+    totalEarnings: 0,
+    monthlyHours: 0,
+    monthlyEarnings: 0
+  });
 
-  const fetchDashboardData = async () => {
+  const calculateDashboardStats = useCallback((tasks, hourlyRate) => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    const monthlyTasks = tasks.filter(task => new Date(task.date) >= startOfMonth);
+    
+    const totalHours = tasks.reduce((acc, task) => acc + (parseFloat(task.hoursWorked) || 0), 0);
+    const monthlyHours = monthlyTasks.reduce((acc, task) => acc + (parseFloat(task.hoursWorked) || 0), 0);
+    
+    return {
+      totalHours: Math.round(totalHours * 100) / 100,
+      totalEarnings: Math.round(totalHours * hourlyRate * 100) / 100,
+      monthlyHours: Math.round(monthlyHours * 100) / 100,
+      monthlyEarnings: Math.round(monthlyHours * hourlyRate * 100) / 100
+    };
+  }, []);
+
+  const fetchData = useCallback(async () => {
     try {
       const [tasksResponse, profileResponse] = await Promise.all([
         taskService.getTasks(),
@@ -31,20 +50,19 @@ function Dashboard() {
       ]);
       
       const tasks = tasksResponse.data;
-      setUserData(profileResponse.data);
+      const profile = profileResponse.data;
+      
+      setUserData(profile);
+      
+      // Calculate dashboard stats
+      const stats = calculateDashboardStats(tasks, profile.hourlyRate);
+      setDashboardStats(stats);
+      setTotalHours(stats.totalHours);
       
       // Sort tasks by date (most recent first) and take the last 5
       const sortedTasks = tasks.sort((a, b) => new Date(b.date) - new Date(a.date));
       setRecentTasks(sortedTasks.slice(0, 5));
       
-      // Calculate total hours for all tasks
-      const total = tasks.reduce((acc, task) => {
-        const hours = parseFloat(task.hoursWorked);
-        return acc + (isNaN(hours) ? 0 : hours);
-      }, 0);
-      
-      setTotalHours(Math.round(total * 100) / 100);
-
       // Calculate task statistics
       const now = new Date();
       const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
@@ -54,15 +72,15 @@ function Dashboard() {
         totalTasks: tasks.length,
         thisWeekTasks: tasks.filter(task => new Date(task.date) >= startOfWeek).length
       });
-
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      toast.error('Failed to fetch dashboard data');
     }
-  };
+  }, [calculateDashboardStats]);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
     if (location.state?.showSuccessMessage) {
@@ -111,16 +129,28 @@ function Dashboard() {
     }
   };
 
-  const handleCreateTask = async (formData) => {
+  const handleCreateTask = async (taskData) => {
     try {
-      await taskService.createTask(formData);
-      setIsTaskFormOpen(false);
-      fetchDashboardData();
-      window.dispatchEvent(new Event('taskCreated'));
+      const response = await taskService.createTask(taskData);
+      
+      if (response.data) {
+        // Update dashboard data
+        await fetchData();
+        
+        // Close form and show success message
+        setIsTaskFormOpen(false);
+        toast.success('Task created successfully');
+        
+        // Dispatch custom event for other components
+        window.dispatchEvent(new Event('taskCreated'));
+      }
     } catch (error) {
       console.error('Error creating task:', error);
-      const errorMessage = error.response?.data?.message || 'Error creating task';
-      alert(errorMessage);
+      const errorMessage = error.response?.data?.message || 'Failed to create task';
+      toast.error(errorMessage);
+      
+      // Keep form open if there's an error
+      setIsTaskFormOpen(true);
     }
   };
 
@@ -153,7 +183,7 @@ function Dashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Total Tasks Card */}
           <div onClick={() => handleQuickAction('view-tasks')} 
                className="group bg-white rounded-2xl shadow-sm p-6 cursor-pointer hover:shadow-md transition-all duration-300">
@@ -196,6 +226,21 @@ function Dashboard() {
               <div>
                 <p className="text-sm font-medium text-gray-500">Total Hours</p>
                 <p className="text-2xl font-bold text-gray-900">{totalHours}h</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Monthly Earnings Card */}
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-gray-100 rounded-xl">
+                <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Monthly Earnings</p>
+                <p className="text-2xl font-bold text-gray-900">ZMW {dashboardStats.monthlyEarnings}</p>
               </div>
             </div>
           </div>

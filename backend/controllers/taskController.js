@@ -19,26 +19,36 @@ const getTasks = async (req, res) => {
 };
 
 const createTask = async (req, res) => {
-  console.log('Received POST request for task creation:', req.body);
-  
   try {
     const { description, date, shift, startTime, endTime, hoursWorked, category } = req.body;
     const userId = req.user.id;
     
-    // Check existing tasks
-    const taskCounts = await Task.checkExistingTasksForDay(userId, date, shift);
-    
-    // First check if there's already a task in this shift
-    if (taskCounts.shiftCount > 0) {
+    // Validate required fields
+    if (!description || !date || !shift || !startTime || !endTime || !hoursWorked) {
       return res.status(400).json({ 
-        message: `You already have a task recorded for the ${shift} shift on ${date}. Only one task per shift is allowed.`
+        message: 'Please provide all required fields' 
+      });
+    }
+
+    // Validate hours worked
+    if (hoursWorked <= 0) {
+      return res.status(400).json({ 
+        message: 'Invalid time range' 
       });
     }
     
-    // Then check total tasks for the day
+    // Check existing tasks
+    const taskCounts = await Task.checkExistingTasksForDay(userId, date, shift);
+    
+    if (taskCounts.shiftCount > 0) {
+      return res.status(400).json({ 
+        message: `You already have a task recorded for the ${shift} shift on ${date}` 
+      });
+    }
+    
     if (taskCounts.totalTasksForDay >= 2) {
       return res.status(400).json({ 
-        message: `You can only record two tasks per day (one morning, one afternoon). You have already recorded the maximum tasks for ${date}.`
+        message: `Maximum tasks for ${date} already recorded` 
       });
     }
     
@@ -55,11 +65,11 @@ const createTask = async (req, res) => {
     
     const newTask = await Task.getTaskById(taskId);
     res.status(201).json(newTask);
-  } catch (err) {
-    console.error('Error creating task:', err);
+  } catch (error) {
+    console.error('Error creating task:', error);
     res.status(500).json({ 
-      message: 'Error creating task',
-      error: err.message 
+      message: 'Server error while creating task',
+      error: error.message 
     });
   }
 };

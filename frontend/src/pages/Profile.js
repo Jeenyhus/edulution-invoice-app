@@ -22,9 +22,39 @@ function Profile() {
 
   const fetchProfileData = useCallback(async () => {
     try {
-      const response = await userService.getProfile();
-      setProfile(response.data);
-      setFormData(response.data);
+      const [profileResponse, tasksResponse] = await Promise.all([
+        userService.getProfile(),
+        taskService.getTasks()
+      ]);
+
+      const profile = profileResponse.data;
+      const tasks = tasksResponse.data;
+
+      // Calculate monthly stats
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      const monthlyTasks = tasks.filter(task => new Date(task.date) >= startOfMonth);
+      const monthlyHours = monthlyTasks.reduce((acc, task) => {
+        return acc + (parseFloat(task.hoursWorked) || 0);
+      }, 0);
+      
+      const monthlyEarnings = monthlyHours * (profile.hourlyRate || 0);
+
+      setProfile(profile);
+      setFormData(profile);
+      setStats({
+        totalTasks: tasks.length,
+        monthlyHours: Math.round(monthlyHours * 100) / 100,
+        monthlyEarnings: Math.round(monthlyEarnings * 100) / 100,
+        recentActivity: tasks
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .slice(0, 5)
+          .map(task => ({
+            title: task.description,
+            timeAgo: formatTimeAgo(new Date(task.date))
+          }))
+      });
       setLoading(false);
     } catch (err) {
       setError('Failed to fetch profile data');
@@ -46,12 +76,15 @@ function Profile() {
     window.addEventListener('taskUpdated', handleTaskUpdate);
     window.addEventListener('taskDeleted', handleTaskUpdate);
 
+    // Initial fetch
+    fetchProfileData();
+
     return () => {
       window.removeEventListener('taskCreated', handleTaskUpdate);
       window.removeEventListener('taskUpdated', handleTaskUpdate);
       window.removeEventListener('taskDeleted', handleTaskUpdate);
     };
-  }, []);
+  }, [fetchProfileData]);
 
   // Helper function to format time ago
   const formatTimeAgo = (date) => {
