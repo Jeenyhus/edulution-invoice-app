@@ -12,9 +12,12 @@ function Dashboard() {
       try {
         const response = await taskService.getTasks();
         const tasks = response.data;
-        setRecentTasks(tasks.slice(0, 5)); // Get last 5 tasks
         
-        // Calculate total hours
+        // Sort tasks by date (most recent first) and take the last 5
+        const sortedTasks = tasks.sort((a, b) => new Date(b.date) - new Date(a.date));
+        setRecentTasks(sortedTasks.slice(0, 5));
+        
+        // Calculate total hours for the current user's tasks
         const total = tasks.reduce((acc, task) => acc + task.hoursWorked, 0);
         setTotalHours(total);
       } catch (error) {
