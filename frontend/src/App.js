@@ -8,6 +8,7 @@ import Invoices from './pages/Invoices';
 import Navbar from './components/Navbar';
 import Register from './pages/Register';
 import { useEffect } from 'react';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -53,6 +54,17 @@ function App() {
                   <Navbar />
                   <Invoices />
                 </div>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <div>
+                    <Navbar />
+                    <Profile />
+                  </div>
+                </PrivateRoute>
               }
             />
           </Routes>

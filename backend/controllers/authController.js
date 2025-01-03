@@ -3,7 +3,18 @@ const { db } = require('../config/db');
 const bcrypt = require('bcryptjs');
 
 const register = async (req, res) => {
-  const { name, email, password, hourlyRate } = req.body;
+  const { 
+    name, 
+    email, 
+    password, 
+    hourlyRate,
+    career,
+    bankName,
+    branchCode,
+    accountNumber,
+    address,
+    phoneNumber
+  } = req.body;
 
   try {
     // Check if user already exists
@@ -21,13 +32,29 @@ const register = async (req, res) => {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      // Create user
+      // Create user with new fields
       const sql = `
-        INSERT INTO users (name, email, password, hourlyRate, role)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO users (
+          name, email, password, hourlyRate, career, 
+          bankName, branchCode, accountNumber, address, 
+          phoneNumber, role
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
-      db.run(sql, [name, email, hashedPassword, hourlyRate, 'user'], function(err) {
+      db.run(sql, [
+        name, 
+        email, 
+        hashedPassword, 
+        hourlyRate,
+        career,
+        bankName,
+        branchCode,
+        accountNumber,
+        address,
+        phoneNumber,
+        'user'
+      ], function(err) {
         if (err) {
           console.error('Error creating user:', err);
           return res.status(500).json({ message: 'Error creating user' });
@@ -35,7 +62,12 @@ const register = async (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign(
-          { id: this.lastID, email, role: 'user' },
+          { 
+            id: this.lastID, 
+            email, 
+            role: 'user',
+            career // Include career in token for easy access
+          },
           process.env.JWT_SECRET,
           { expiresIn: '24h' }
         );
@@ -48,6 +80,7 @@ const register = async (req, res) => {
             name,
             email,
             hourlyRate,
+            career,
             role: 'user'
           }
         });

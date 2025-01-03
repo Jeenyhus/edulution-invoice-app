@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { taskService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 function TaskForm({ onSubmit, initialData = null }) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     date: initialData?.date?.split('T')[0] || new Date().toISOString().split('T')[0],
     shift: initialData?.shift || 'morning',
     startTime: initialData?.startTime || '',
     endTime: initialData?.endTime || '',
-    category: initialData?.category || '',
+    category: initialData?.category || user?.career || '',
     description: initialData?.description || '',
     hoursWorked: initialData?.hoursWorked || ''
   });
@@ -145,10 +147,9 @@ function TaskForm({ onSubmit, initialData = null }) {
           <input
             type="text"
             name="category"
-            value={formData.category}
-            onChange={handleChange}
-            className="mt-2 block w-full rounded-md border-gray-200 bg-white px-4 py-2 text-gray-900 shadow-sm hover:border-gray-900 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
-            required
+            value={user?.career || formData.category}
+            readOnly
+            className="mt-2 block w-full rounded-md border-gray-200 bg-gray-100 px-4 py-2 text-gray-900 shadow-sm"
           />
         </div>
 
