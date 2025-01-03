@@ -5,17 +5,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import TaskForm from '../components/TaskForm';
 import ConfirmationModal from '../components/ConfirmationModal';
 
-const truncateDescription = (description, maxLength = 35) => {
-  if (!description) return '';
-  if (description.length <= maxLength) return description;
-  return description.substring(0, maxLength) + '...';
-};
-
 function Tasks() {
   const [tasks, setTasks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line no-unused-vars
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);

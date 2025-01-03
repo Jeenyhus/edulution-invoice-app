@@ -6,7 +6,6 @@ function Invoices() {
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0]
   });
-  const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
 
   const handleGenerateInvoice = async () => {
@@ -37,7 +36,7 @@ function Invoices() {
     }
   };
 
-  if (loading) {
+  if (generating) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0072cd]"></div>
