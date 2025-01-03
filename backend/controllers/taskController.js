@@ -24,6 +24,23 @@ const createTask = async (req, res) => {
     const { description, date, shift, startTime, endTime, hoursWorked, category } = req.body;
     const userId = req.user.id;
     
+    // Check existing tasks
+    const taskCounts = await Task.checkExistingTasksForDay(userId, date, shift);
+    
+    // First check if there's already a task in this shift
+    if (taskCounts.shiftCount > 0) {
+      return res.status(400).json({ 
+        message: `You already have a task recorded for the ${shift} shift on ${date}. Only one task per shift is allowed.`
+      });
+    }
+    
+    // Then check total tasks for the day
+    if (taskCounts.totalTasksForDay >= 2) {
+      return res.status(400).json({ 
+        message: `You can only record two tasks per day (one morning, one afternoon). You have already recorded the maximum tasks for ${date}.`
+      });
+    }
+    
     const taskId = await Task.createTask({
       description,
       date,

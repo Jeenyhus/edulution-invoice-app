@@ -30,6 +30,30 @@ const initializeDb = () => {
   });
 };
 
+const checkExistingTasksForDay = (userId, date, shift) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT 
+        (SELECT COUNT(*) FROM tasks WHERE userId = ? AND date = ?) as totalCount,
+        (SELECT COUNT(*) FROM tasks WHERE userId = ? AND date = ? AND shift = ?) as shiftCount
+      FROM tasks 
+      LIMIT 1
+    `;
+    
+    db.get(sql, [userId, date, userId, date, shift], (err, result) => {
+      if (err) {
+        console.error('Error checking existing tasks:', err);
+        reject(err);
+      } else {
+        resolve({
+          totalTasksForDay: result ? result.totalCount : 0,
+          tasksInShift: result ? result.shiftCount : 0
+        });
+      }
+    });
+  });
+};
+
 module.exports = {
   initializeDb,
   getAllTasks: () => {
@@ -103,5 +127,6 @@ module.exports = {
         }
       });
     });
-  }
+  },
+  checkExistingTasksForDay
 };
