@@ -17,6 +17,47 @@ function Dashboard() {
   const { user } = useAuth();
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
 
+  const fetchDashboardData = async () => {
+    try {
+      const [tasksResponse, profileResponse] = await Promise.all([
+        taskService.getTasks(),
+        userService.getProfile()
+      ]);
+      
+      const tasks = tasksResponse.data;
+      setUserData(profileResponse.data);
+      
+      // Sort tasks by date (most recent first) and take the last 5
+      const sortedTasks = tasks.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setRecentTasks(sortedTasks.slice(0, 5));
+      
+      // Calculate total hours for all tasks
+      const total = tasks.reduce((acc, task) => {
+        const hours = parseFloat(task.hoursWorked);
+        return acc + (isNaN(hours) ? 0 : hours);
+      }, 0);
+      
+      setTotalHours(Math.round(total * 100) / 100);
+
+      // Calculate task statistics
+      const now = new Date();
+      const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      setTaskStats({
+        totalTasks: tasks.length,
+        thisWeekTasks: tasks.filter(task => new Date(task.date) >= startOfWeek).length
+      });
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
   // Get time of day for greeting
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
@@ -37,43 +78,6 @@ function Dashboard() {
     return quotes[Math.floor(Math.random() * quotes.length)];
   };
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const [tasksResponse, profileResponse] = await Promise.all([
-          taskService.getTasks(),
-          userService.getProfile()
-        ]);
-        
-        const tasks = tasksResponse.data;
-        setUserData(profileResponse.data);
-        
-        // Sort tasks by date (most recent first) and take the last 5
-        const sortedTasks = tasks.sort((a, b) => new Date(b.date) - new Date(a.date));
-        setRecentTasks(sortedTasks.slice(0, 5));
-        
-        // Calculate total hours
-        const total = tasks.reduce((acc, task) => acc + task.hoursWorked, 0);
-        setTotalHours(total);
-
-        // Calculate task statistics
-        const now = new Date();
-        const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-        startOfWeek.setHours(0, 0, 0, 0);
-
-        setTaskStats({
-          totalTasks: tasks.length,
-          thisWeekTasks: tasks.filter(task => new Date(task.date) >= startOfWeek).length
-        });
-
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
-
   const handleQuickAction = (action) => {
     switch(action) {
       case 'new-task':
@@ -87,6 +91,19 @@ function Dashboard() {
         break;
       default:
         break;
+    }
+  };
+
+  const handleCreateTask = async (formData) => {
+    try {
+      await taskService.createTask(formData);
+      setIsTaskFormOpen(false);
+      fetchDashboardData();
+      window.dispatchEvent(new Event('taskCreated'));
+    } catch (error) {
+      console.error('Error creating task:', error);
+      const errorMessage = error.response?.data?.message || 'Error creating task';
+      alert(errorMessage);
     }
   };
 
@@ -245,7 +262,7 @@ function Dashboard() {
                 </svg>
               </button>
             </div>
-            <TaskForm onClose={() => setIsTaskFormOpen(false)} />
+            <TaskForm onSubmit={handleCreateTask} onClose={() => setIsTaskFormOpen(false)} />
           </div>
         </div>
       )}

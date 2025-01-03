@@ -29,6 +29,8 @@ function Tasks() {
         afternoon: todaysTasks.some(task => task.shift === 'afternoon')
       });
       
+      // Dispatch event to update Profile stats
+      window.dispatchEvent(new Event('taskUpdated'));
       setError(null);
     } catch (error) {
       console.error('Error fetching tasks:', error);
@@ -47,6 +49,7 @@ function Tasks() {
       const response = await taskService.createTask(formData);
       setIsModalOpen(false);
       await fetchTasks();
+      window.dispatchEvent(new Event('taskCreated'));
       setError(null);
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Error creating task';
@@ -66,6 +69,7 @@ function Tasks() {
       await taskService.updateTask(editingTask.id, formData);
       setEditingTask(null);
       await fetchTasks();
+      window.dispatchEvent(new Event('taskUpdated'));
     } catch (error) {
       console.error('Error updating task:', error);
     }
@@ -80,6 +84,7 @@ function Tasks() {
     try {
       await taskService.deleteTask(taskToDelete.id);
       setTasks(tasks.filter(task => task.id !== taskToDelete.id));
+      window.dispatchEvent(new Event('taskDeleted'));
       setError(null);
       setShowDeleteModal(false);
       setTaskToDelete(null);

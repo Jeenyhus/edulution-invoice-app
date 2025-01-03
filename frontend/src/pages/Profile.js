@@ -17,53 +17,75 @@ function Profile() {
     recentActivity: []
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [profileRes, tasksRes] = await Promise.all([
-          userService.getProfile(),
-          taskService.getTasks()
-        ]);
+  const fetchProfileData = async () => {
+    try {
+      const [profileRes, tasksRes] = await Promise.all([
+        userService.getProfile(),
+        taskService.getTasks()
+      ]);
 
-        setProfile(profileRes.data);
+      setProfile(profileRes.data);
 
-        // Calculate statistics from tasks
-        const tasks = tasksRes.data;
-        const now = new Date();
-        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      // Calculate statistics from tasks
+      const tasks = tasksRes.data;
+      const now = new Date();
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-        const monthlyTasks = tasks.filter(task => 
-          new Date(task.date) >= firstDayOfMonth && 
-          new Date(task.date) <= now
-        );
+      const monthlyTasks = tasks.filter(task => {
+        const taskDate = new Date(task.date);
+        return taskDate >= firstDayOfMonth && taskDate <= now;
+      });
 
-        const monthlyHours = monthlyTasks.reduce((acc, task) => acc + task.hoursWorked, 0);
-        const monthlyEarnings = monthlyHours * profileRes.data.hourlyRate;
+      // Calculate monthly hours with proper number handling
+      const monthlyHours = monthlyTasks.reduce((acc, task) => {
+        const hours = parseFloat(task.hoursWorked);
+        return acc + (isNaN(hours) ? 0 : hours);
+      }, 0);
+      
+      const roundedMonthlyHours = Math.round(monthlyHours * 100) / 100;
+      const hourlyRate = parseFloat(profileRes.data.hourlyRate) || 0;
+      const monthlyEarnings = roundedMonthlyHours * hourlyRate;
 
-        // Sort tasks by date (most recent first) and take the last 5
-        const recentActivity = tasks
+      setStats({
+        totalTasks: tasks.length,
+        monthlyHours: roundedMonthlyHours,
+        monthlyEarnings: monthlyEarnings,
+        recentActivity: tasks
           .sort((a, b) => new Date(b.date) - new Date(a.date))
           .slice(0, 5)
           .map(task => ({
             ...task,
             timeAgo: formatTimeAgo(new Date(task.date))
-          }));
+          }))
+      });
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError('Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setStats({
-          totalTasks: tasks.length,
-          monthlyHours,
-          monthlyEarnings,
-          recentActivity
-        });
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setError('Failed to load data');
-      } finally {
-        setLoading(false);
-      }
+  // Initial fetch
+  useEffect(() => {
+    fetchProfileData();
+  }, []);
+
+  // Set up event listeners for task updates
+  useEffect(() => {
+    const handleTaskUpdate = () => {
+      fetchProfileData();
     };
 
-    fetchData();
+    window.addEventListener('taskCreated', handleTaskUpdate);
+    window.addEventListener('taskUpdated', handleTaskUpdate);
+    window.addEventListener('taskDeleted', handleTaskUpdate);
+
+    return () => {
+      window.removeEventListener('taskCreated', handleTaskUpdate);
+      window.removeEventListener('taskUpdated', handleTaskUpdate);
+      window.removeEventListener('taskDeleted', handleTaskUpdate);
+    };
   }, []);
 
   // Helper function to format time ago
