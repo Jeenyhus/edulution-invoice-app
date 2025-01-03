@@ -5,6 +5,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import TaskForm from '../components/TaskForm';
 import ConfirmationModal from '../components/ConfirmationModal';
 
+const truncateDescription = (description, maxLength = 35) => {
+  if (!description) return '';
+  if (description.length <= maxLength) return description;
+  return description.substring(0, maxLength) + '...';
+};
+
 function Tasks() {
   const [tasks, setTasks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -106,7 +112,7 @@ function Tasks() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="relative p-8">
@@ -164,7 +170,7 @@ function Tasks() {
                   className="group flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-300"
                 >
                   <div className="flex-1">
-                    <h3 className="text-sm font-medium text-gray-900">{task.title}</h3>
+                    <h3 className="text-sm font-medium text-black-900">{task.description}</h3>
                     <p className="text-sm text-gray-500">{new Date(task.date).toLocaleDateString()}</p>
                   </div>
                   <div className="flex items-center space-x-4">

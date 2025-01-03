@@ -4,6 +4,12 @@ import { userService } from '../services/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import TaskForm from '../components/TaskForm';
 
+const truncateDescription = (description, maxLength = 35) => {
+  if (!description) return '';
+  if (description.length <= maxLength) return description;
+  return description.substring(0, maxLength) + '...';
+};
+
 function Dashboard() {
   const [recentTasks, setRecentTasks] = useState([]);
   const [totalHours, setTotalHours] = useState(0);
@@ -217,7 +223,7 @@ function Dashboard() {
                     onClick={() => navigate(`/tasks/${task.id}`)}
                   >
                     <div className="flex-1">
-                      <h3 className="text-sm font-medium text-gray-900 group-hover:text-black">{task.title}</h3>
+                      <h3 className="text-sm font-medium text-gray-900 group-hover:text-black">{task.description}</h3>
                       <p className="text-sm text-gray-500">{new Date(task.date).toLocaleDateString()}</p>
                     </div>
                     <span className="px-3 py-1 text-sm font-medium rounded-full bg-gray-200 text-gray-900">
