@@ -72,7 +72,7 @@ function Login() {
 
     try {
       await login(credentials.email, credentials.password);
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to login');
     } finally {

@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { userService } from '../services/api';
 import ProfileForm from '../components/ProfileForm';
 import { taskService } from '../services/api';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Profile() {
   const { user } = useAuth();
@@ -10,6 +12,7 @@ function Profile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({});
   const [stats, setStats] = useState({
     totalTasks: 0,
     monthlyHours: 0,
@@ -17,59 +20,21 @@ function Profile() {
     recentActivity: []
   });
 
-  const fetchProfileData = async () => {
+  const fetchProfileData = useCallback(async () => {
     try {
-      const [profileRes, tasksRes] = await Promise.all([
-        userService.getProfile(),
-        taskService.getTasks()
-      ]);
-
-      setProfile(profileRes.data);
-
-      // Calculate statistics from tasks
-      const tasks = tasksRes.data;
-      const now = new Date();
-      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-      const monthlyTasks = tasks.filter(task => {
-        const taskDate = new Date(task.date);
-        return taskDate >= firstDayOfMonth && taskDate <= now;
-      });
-
-      // Calculate monthly hours with proper number handling
-      const monthlyHours = monthlyTasks.reduce((acc, task) => {
-        const hours = parseFloat(task.hoursWorked);
-        return acc + (isNaN(hours) ? 0 : hours);
-      }, 0);
-      
-      const roundedMonthlyHours = Math.round(monthlyHours * 100) / 100;
-      const hourlyRate = parseFloat(profileRes.data.hourlyRate) || 0;
-      const monthlyEarnings = roundedMonthlyHours * hourlyRate;
-
-      setStats({
-        totalTasks: tasks.length,
-        monthlyHours: roundedMonthlyHours,
-        monthlyEarnings: monthlyEarnings,
-        recentActivity: tasks
-          .sort((a, b) => new Date(b.date) - new Date(a.date))
-          .slice(0, 5)
-          .map(task => ({
-            ...task,
-            timeAgo: formatTimeAgo(new Date(task.date))
-          }))
-      });
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setError('Failed to load data');
-    } finally {
+      const response = await userService.getProfile();
+      setProfile(response.data);
+      setFormData(response.data);
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to fetch profile data');
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Initial fetch
   useEffect(() => {
     fetchProfileData();
-  }, []);
+  }, [fetchProfileData]);
 
   // Set up event listeners for task updates
   useEffect(() => {
@@ -109,13 +74,15 @@ function Profile() {
     return 'Just now';
   };
 
-  const handleUpdateProfile = async (updatedData) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const response = await userService.updateProfile(updatedData);
-      setProfile(response.data);
+      await userService.updateProfile(formData);
+      await fetchProfileData();
       setIsEditing(false);
+      toast.success('Profile updated successfully');
     } catch (error) {
-      setError('Failed to update profile');
+      toast.error('Failed to update profile');
     }
   };
 
@@ -251,8 +218,8 @@ function Profile() {
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <h2 className="text-xl font-semibold mb-4">Edit Profile</h2>
             <ProfileForm
-              onSubmit={handleUpdateProfile}
-              initialData={profile}
+              onSubmit={handleSubmit}
+              initialData={formData}
               onCancel={() => setIsEditing(false)}
             />
           </div>

@@ -9,6 +9,7 @@ import Navbar from './components/Navbar';
 import Register from './pages/Register';
 import { useEffect } from 'react';
 import Profile from './pages/Profile';
+import LandingPage from './pages/LandingPage';
 
 function App() {
   return (
@@ -16,10 +17,11 @@ function App() {
       <AuthProvider>
         <div className="min-h-screen bg-gray-100">
           <Routes>
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route
-              path="/"
+              path="/dashboard"
               element={
                 <PrivateRoute>
                   <div>

@@ -14,7 +14,6 @@ function Dashboard() {
     thisWeekTasks: 0
   });
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
 
   const fetchDashboardData = async () => {
@@ -114,7 +113,7 @@ function Dashboard() {
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="relative p-8">
             <div className="max-w-3xl relative z-10">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-[#0072cd] mb-2">
                 Good {getTimeBasedGreeting()}, {userData?.name?.split(' ')[0]} 👋
               </h1>
               <p className="text-gray-600 text-lg mb-4">
@@ -225,7 +224,7 @@ function Dashboard() {
               <div className="space-y-3">
                 <button 
                   onClick={() => handleQuickAction('new-task')}
-                  className="w-full flex items-center justify-between p-4 bg-gray-100 rounded-xl text-gray-900 hover:bg-gray-200 transition-all duration-300"
+                  className="w-full flex items-center justify-between p-4 bg-[#0072cd]/10 rounded-xl text-[#0072cd] hover:bg-[#0072cd]/20 transition-all duration-300"
                 >
                   <span className="text-sm font-medium">Create New Task</span>
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
