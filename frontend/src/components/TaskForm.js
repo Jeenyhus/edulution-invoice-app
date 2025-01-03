@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { taskService } from '../services/api';
 
 function TaskForm({ onSubmit, initialData = null }) {
   const [formData, setFormData] = useState({
@@ -10,14 +11,52 @@ function TaskForm({ onSubmit, initialData = null }) {
     description: initialData?.description || '',
     hoursWorked: initialData?.hoursWorked || ''
   });
+  
+  const [existingShifts, setExistingShifts] = useState({
+    morning: false,
+    afternoon: false
+  });
+
+  useEffect(() => {
+    // Check for existing shifts when date changes
+    const checkExistingShifts = async () => {
+      try {
+        const response = await taskService.getTasks();
+        const tasksForDate = response.data.filter(task => task.date === formData.date);
+        
+        setExistingShifts({
+          morning: tasksForDate.some(task => task.shift === 'morning'),
+          afternoon: tasksForDate.some(task => task.shift === 'afternoon')
+        });
+      } catch (error) {
+        console.error('Error checking existing shifts:', error);
+      }
+    };
+
+    checkExistingShifts();
+  }, [formData.date]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Check if shift is already taken
+    if (existingShifts[formData.shift] && !initialData) {
+      alert(`You already have a task recorded for the ${formData.shift} shift on ${formData.date}. Only one task per shift is allowed.`);
+      return;
+    }
+    
     onSubmit(formData);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // If changing shift, check if it's already taken
+    if (name === 'shift' && existingShifts[value] && !initialData) {
+      alert(`You already have a task recorded for the ${value} shift on ${formData.date}. Please select a different shift.`);
+      return;
+    }
+    
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -42,12 +81,17 @@ function TaskForm({ onSubmit, initialData = null }) {
             name="shift"
             value={formData.shift}
             onChange={handleChange}
-            className="mt-2 block w-full rounded-md border-gray-200 bg-white px-4 py-2 text-gray-900 shadow-sm hover:border-gray-900 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+            className={`mt-2 block w-full rounded-md border-gray-200 bg-white px-4 py-2 text-gray-900 shadow-sm hover:border-gray-900 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 ${
+              existingShifts[formData.shift] && !initialData ? 'bg-gray-100 cursor-not-allowed' : ''
+            }`}
             required
           >
-            <option value="morning">Morning</option>
-            <option value="afternoon">Afternoon</option>
+            <option value="morning" disabled={existingShifts.morning && !initialData}>Morning</option>
+            <option value="afternoon" disabled={existingShifts.afternoon && !initialData}>Afternoon</option>
           </select>
+          {existingShifts[formData.shift] && !initialData && (
+            <p className="mt-1 text-sm text-red-600">This shift is already taken</p>
+          )}
         </div>
 
         <div>

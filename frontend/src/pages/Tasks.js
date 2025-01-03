@@ -11,11 +11,24 @@ function Tasks() {
   const [error, setError] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [shifts, setShifts] = useState({
+    morning: false,
+    afternoon: false
+  });
 
   const fetchTasks = async () => {
     try {
       const response = await taskService.getTasks();
       setTasks(response.data);
+      
+      const today = new Date().toISOString().split('T')[0];
+      const todaysTasks = response.data.filter(task => task.date === today);
+      
+      setShifts({
+        morning: todaysTasks.some(task => task.shift === 'morning'),
+        afternoon: todaysTasks.some(task => task.shift === 'afternoon')
+      });
+      
       setError(null);
     } catch (error) {
       console.error('Error fetching tasks:', error);
@@ -31,11 +44,20 @@ function Tasks() {
 
   const handleCreateTask = async (formData) => {
     try {
-      await taskService.createTask(formData);
+      const response = await taskService.createTask(formData);
       setIsModalOpen(false);
       await fetchTasks();
+      setError(null);
     } catch (error) {
-      console.error('Error creating task:', error);
+      const errorMessage = error.response?.data?.message || 'Error creating task';
+      setError(errorMessage);
+      
+      if (errorMessage.includes('shift')) {
+        alert(errorMessage);
+        setIsModalOpen(false);
+      }
+      
+      setTimeout(() => setError(null), 5000);
     }
   };
 
@@ -113,8 +135,19 @@ function Tasks() {
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
           <h1 className="text-3xl font-bold text-gray-900">Tasks Overview</h1>
           <button
-            onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center px-6 py-3 text-sm font-medium rounded-lg text-white bg-gray-900 hover:bg-gray-800 transition-colors duration-200"
+            onClick={() => {
+              if (shifts.morning && shifts.afternoon) {
+                alert('You have already recorded tasks for both shifts today.');
+                return;
+              }
+              setIsModalOpen(true);
+            }}
+            className={`inline-flex items-center px-6 py-3 text-sm font-medium rounded-lg text-white ${
+              shifts.morning && shifts.afternoon 
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-gray-900 hover:bg-gray-800 transition-colors duration-200'
+            }`}
+            disabled={shifts.morning && shifts.afternoon}
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
