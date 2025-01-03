@@ -82,11 +82,13 @@ function Navbar() {
           {/* User Menu */}
           <div className="hidden sm:flex sm:items-center sm:space-x-6">
             <div className="flex items-center space-x-3">
-              <img
-                src={`https://ui-avatars.com/api/?name=${user?.name}&background=000&color=fff`}
-                alt={user?.name}
-                className="h-8 w-8 rounded-full"
-              />
+              <Link to="/profile" className="flex items-center space-x-2 hover:opacity-80">
+                <img
+                  src={`https://ui-avatars.com/api/?name=${user?.name}&background=000&color=fff`}
+                  alt={user?.name}
+                  className="h-8 w-8 rounded-full"
+                />
+              </Link>
               <button
                 onClick={handleLogout}
                 className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg

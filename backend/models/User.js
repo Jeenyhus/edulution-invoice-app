@@ -3,7 +3,10 @@ const { db } = require('../config/db');
 module.exports = {
   getAllUsers: () => {
     return new Promise((resolve, reject) => {
-      db.all('SELECT id, name, email, role, hourlyRate, createdAt FROM users', [], (err, users) => {
+      db.all(`
+        SELECT id, name, email, role, hourlyRate, career, bankName, 
+               branchCode, accountNumber, address, phoneNumber, createdAt 
+        FROM users`, [], (err, users) => {
         if (err) {
           console.error('Error fetching users:', err);
           reject(err);
@@ -13,11 +16,31 @@ module.exports = {
       });
     });
   },
+
   getUserById: (id) => {
     return new Promise((resolve, reject) => {
-      db.get('SELECT id, name, email, role, hourlyRate, createdAt FROM users WHERE id = ?', [id], (err, user) => {
+      db.get(`
+        SELECT id, name, email, role, hourlyRate, career, bankName, 
+               branchCode, accountNumber, address, phoneNumber, createdAt 
+        FROM users WHERE id = ?`, [id], (err, user) => {
         if (err) {
           console.error('Error fetching user:', err);
+          reject(err);
+        } else {
+          resolve(user);
+        }
+      });
+    });
+  },
+
+  getProfile: (userId) => {
+    return new Promise((resolve, reject) => {
+      db.get(`
+        SELECT id, name, email, role, hourlyRate, career, bankName, 
+               branchCode, accountNumber, address, phoneNumber, createdAt 
+        FROM users WHERE id = ?`, [userId], (err, user) => {
+        if (err) {
+          console.error('Error fetching profile:', err);
           reject(err);
         } else {
           resolve(user);
