@@ -56,9 +56,9 @@ const checkExistingTasksForDay = (userId, date, shift) => {
 
 module.exports = {
   initializeDb,
-  getAllTasks: () => {
+  getAllTasks: (userId) => {
     return new Promise((resolve, reject) => {
-      db.all('SELECT * FROM tasks ORDER BY date DESC', [], (err, tasks) => {
+      db.all('SELECT * FROM tasks WHERE userId = ? ORDER BY date DESC', [userId], (err, tasks) => {
         if (err) {
           console.error('Error fetching tasks:', err);
           reject(err);

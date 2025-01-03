@@ -22,6 +22,7 @@ function TaskForm({ onSubmit, initialData = null }) {
     const checkExistingShifts = async () => {
       try {
         const response = await taskService.getTasks();
+        // Filter tasks for the selected date only
         const tasksForDate = response.data.filter(task => task.date === formData.date);
         
         setExistingShifts({

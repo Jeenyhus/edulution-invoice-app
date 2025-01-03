@@ -5,8 +5,9 @@ const getTasks = async (req, res) => {
   console.log('Received GET request for tasks');
   
   try {
-    const tasks = await Task.getAllTasks();
-    console.log(`Found ${tasks.length} tasks`);
+    const userId = req.user.id;
+    const tasks = await Task.getAllTasks(userId);
+    console.log(`Found ${tasks.length} tasks for user ${userId}`);
     res.json(tasks);
   } catch (err) {
     console.error('Error in getTasks:', err);
@@ -66,6 +67,14 @@ const createTask = async (req, res) => {
 const updateTask = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
+
+    // First verify the task belongs to this user
+    const existingTask = await Task.getTaskById(id);
+    if (!existingTask || existingTask.userId !== userId) {
+      return res.status(403).json({ message: 'Not authorized to update this task' });
+    }
+
     const changes = await Task.updateTask(id, req.body);
     if (changes === 0) {
       return res.status(404).json({ message: 'Task not found' });
@@ -84,6 +93,14 @@ const updateTask = async (req, res) => {
 const deleteTask = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
+
+    // First verify the task belongs to this user
+    const existingTask = await Task.getTaskById(id);
+    if (!existingTask || existingTask.userId !== userId) {
+      return res.status(403).json({ message: 'Not authorized to delete this task' });
+    }
+
     const changes = await Task.deleteTask(id);
     if (changes === 0) {
       return res.status(404).json({ message: 'Task not found' });
