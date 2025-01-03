@@ -112,119 +112,102 @@ function Profile() {
 
   return (
     <div className="min-h-screen bg-white p-4 sm:p-6 lg:p-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-medium leading-6 text-gray-900">Profile Information</h3>
-              <button
-                onClick={() => setIsEditing(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800"
-              >
-                Edit Profile
-              </button>
-            </div>
-            
-            <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Name</dt>
-                <dd className="mt-1 text-sm text-gray-900">{profile.name}</dd>
-              </div>
-
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Email</dt>
-                <dd className="mt-1 text-sm text-gray-900">{profile.email}</dd>
-              </div>
-
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Career</dt>
-                <dd className="mt-1 text-sm text-gray-900">{profile.career}</dd>
-              </div>
-
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Hourly Rate</dt>
-                <dd className="mt-1 text-sm text-gray-900">ZMW {profile.hourlyRate}/hr</dd>
-              </div>
-
-              <div className="sm:col-span-2">
-                <dt className="text-sm font-medium text-gray-500">Address</dt>
-                <dd className="mt-1 text-sm text-gray-900">{profile.address}</dd>
-              </div>
-
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Bank Name</dt>
-                <dd className="mt-1 text-sm text-gray-900">{profile.bankName}</dd>
-              </div>
-
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Branch Code</dt>
-                <dd className="mt-1 text-sm text-gray-900">{profile.branchCode}</dd>
-              </div>
-
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Account Number</dt>
-                <dd className="mt-1 text-sm text-gray-900">{profile.accountNumber}</dd>
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Profile Card */}
+        <div className="border border-gray-100 rounded-lg overflow-hidden">
+          <div className="border-b border-gray-100 px-6 py-4 flex justify-between items-center">
+            <h3 className="text-xl font-medium text-gray-900">Profile Information</h3>
+            <button
+              onClick={() => setIsEditing(true)}
+              className="text-sm text-[#0072cd] hover:text-[#0060ab] transition-colors duration-200"
+            >
+              Edit Profile
+            </button>
+          </div>
+          
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                { label: "Name", value: profile.name },
+                { label: "Email", value: profile.email },
+                { label: "Career", value: profile.career },
+                { label: "Hourly Rate", value: `ZMW ${profile.hourlyRate}/hr` },
+                { label: "Bank Name", value: profile.bankName },
+                { label: "Branch Code", value: profile.branchCode },
+                { label: "Account Number", value: profile.accountNumber },
+              ].map((field, index) => (
+                <div key={index} className="space-y-1">
+                  <dt className="text-sm text-gray-500">{field.label}</dt>
+                  <dd className="text-base text-gray-900">{field.value}</dd>
+                </div>
+              ))}
+              
+              <div className="md:col-span-2 space-y-1">
+                <dt className="text-sm text-gray-500">Address</dt>
+                <dd className="text-base text-gray-900">{profile.address}</dd>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="bg-white shadow rounded-lg p-6">
-            <h4 className="text-lg font-medium text-gray-900 mb-4">Your Statistics</h4>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Total Tasks</span>
-                <span className="text-2xl font-semibold">{stats.totalTasks}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Hours This Month</span>
-                <span className="text-2xl font-semibold">{stats.monthlyHours}h</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Earnings This Month</span>
-                <span className="text-2xl font-semibold text-green-600">
-                  ZMW {stats.monthlyEarnings.toFixed(2)}
-                </span>
-              </div>
+        {/* Statistics and Activity Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Statistics Card */}
+          <div className="border border-gray-100 rounded-lg overflow-hidden">
+            <div className="border-b border-gray-100 px-6 py-4">
+              <h4 className="text-lg font-medium text-gray-900">Your Statistics</h4>
             </div>
-          </div>
-
-          <div className="bg-white shadow rounded-lg p-6">
-            <h4 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h4>
-            <div className="space-y-4">
-              {stats.recentActivity.map((task, index) => (
-                <div key={index} className="flex items-center space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                      <svg className="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Completed Task: {task.title}</p>
-                    <p className="text-sm text-gray-500">{task.timeAgo}</p>
-                  </div>
+            <div className="p-6 space-y-4">
+              {[
+                { label: "Total Tasks", value: stats.totalTasks },
+                { label: "Hours This Month", value: `${stats.monthlyHours}h` },
+                { label: "Earnings This Month", value: `ZMW ${stats.monthlyEarnings.toFixed(2)}` },
+              ].map((stat, index) => (
+                <div key={index} className="flex justify-between items-center">
+                  <span className="text-gray-500">{stat.label}</span>
+                  <span className="text-lg font-medium text-[#0072cd]">{stat.value}</span>
                 </div>
               ))}
             </div>
           </div>
-        </div>
-      </div>
 
-      {isEditing && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-semibold mb-4">Edit Profile</h2>
-            <ProfileForm
-              onSubmit={handleSubmit}
-              initialData={formData}
-              onCancel={() => setIsEditing(false)}
-            />
+          {/* Recent Activity Card */}
+          <div className="border border-gray-100 rounded-lg overflow-hidden">
+            <div className="border-b border-gray-100 px-6 py-4">
+              <h4 className="text-lg font-medium text-gray-900">Recent Activity</h4>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {stats.recentActivity.map((task, index) => (
+                  <div key={index} className="flex items-start space-x-4">
+                    <div className="mt-1">
+                      <div className="h-2 w-2 rounded-full bg-[#0072cd]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{task.title}</p>
+                      <p className="text-sm text-gray-500">{task.timeAgo}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Modal - Minimalistic styling */}
+        {isEditing && (
+          <div className="fixed inset-0 bg-white bg-opacity-90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white border border-gray-100 rounded-lg p-6 max-w-md w-full">
+              <h2 className="text-xl font-medium mb-4 text-gray-900">Edit Profile</h2>
+              <ProfileForm
+                onSubmit={handleSubmit}
+                initialData={formData}
+                onCancel={() => setIsEditing(false)}
+              />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

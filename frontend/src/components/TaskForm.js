@@ -181,7 +181,7 @@ function TaskForm({ onSubmit, initialData = null }) {
       <div className="flex justify-end">
         <button
           type="submit"
-          className="px-6 py-2 text-sm font-medium text-white bg-gray-900 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors duration-200"
+          className="px-6 py-2 text-sm font-medium text-white bg-[#0072cd] rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors duration-200"
         >
           {initialData ? 'Update Task' : 'Create Task'}
         </button>
