@@ -154,7 +154,7 @@ function Profile() {
 
               <div>
                 <dt className="text-sm font-medium text-gray-500">Hourly Rate</dt>
-                <dd className="mt-1 text-sm text-gray-900">${profile.hourlyRate}/hr</dd>
+                <dd className="mt-1 text-sm text-gray-900">ZMW {profile.hourlyRate}/hr</dd>
               </div>
 
               <div className="sm:col-span-2">
@@ -195,7 +195,7 @@ function Profile() {
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Earnings This Month</span>
                 <span className="text-2xl font-semibold text-green-600">
-                  ${stats.monthlyEarnings.toFixed(2)}
+                  ZMW {stats.monthlyEarnings.toFixed(2)}
                 </span>
               </div>
             </div>

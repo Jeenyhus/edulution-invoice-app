@@ -224,26 +224,20 @@ function Register() {
                 )}
               </div>
 
-              <div className="flex flex-col">
-                <label htmlFor="hourlyRate" className="text-sm font-medium text-gray-700">
-                  Hourly Rate ($)
+              <div>
+                <label htmlFor="hourlyRate" className="block text-sm font-medium text-gray-700">
+                  Hourly Rate (ZMW)
                 </label>
                 <input
-                  id="hourlyRate"
-                  name="hourlyRate"
                   type="number"
-                  step="0.01"
-                  min="0"
-                  required
-                  className={`mt-1 px-3 py-2 border ${
-                    errors.hourlyRate ? 'border-red-500' : 'border-gray-300'
-                  } rounded-md focus:ring-1 focus:ring-black focus:border-black`}
+                  name="hourlyRate"
+                  id="hourlyRate"
                   value={formData.hourlyRate}
                   onChange={handleChange}
+                  placeholder="Enter rate in ZMW"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black sm:text-sm"
+                  required
                 />
-                {errors.hourlyRate && (
-                  <p className="mt-1 text-sm text-red-600">{errors.hourlyRate}</p>
-                )}
               </div>
             </div>
 

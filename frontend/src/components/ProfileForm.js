@@ -3,9 +3,20 @@ import { useState } from 'react';
 function ProfileForm({ onSubmit, initialData, onCancel }) {
   const [formData, setFormData] = useState(initialData);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Convert hourlyRate to number before submitting
+    const updatedData = {
+      ...formData,
+      hourlyRate: parseFloat(formData.hourlyRate)
+    };
+
+    try {
+      await onSubmit(updatedData);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
   };
 
   return (
@@ -41,12 +52,15 @@ function ProfileForm({ onSubmit, initialData, onCancel }) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Hourly Rate</label>
+        <label className="block text-sm font-medium text-gray-700">Hourly Rate (ZMW)</label>
         <input
           type="number"
+          step="0.01"
+          min="0"
           value={formData.hourlyRate}
           onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black"
+          required
         />
       </div>
 
