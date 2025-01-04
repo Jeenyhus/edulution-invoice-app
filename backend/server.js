@@ -1,16 +1,16 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const { protect, admin } = require('./middleware/authMiddleware');
-const { initializeDb, debugDatabase, db } = require('./config/db');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
+const { initializeDb } = require('./config/db');
+const { protect, admin } = require('./middleware/authMiddleware');
 
 dotenv.config();
 
 const app = express();
 
-// CORS configuration
+// Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? ['https://edulution-invoice-frontend.onrender.com']
@@ -18,94 +18,19 @@ app.use(cors({
   credentials: true
 }));
 
-// Basic middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Root route
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Edulution Invoice API is running',
-    endpoints: {
-      auth: '/api/auth',
-      tasks: '/api/tasks',
-      users: '/api/users',
-      invoices: '/api/invoices'
-    }
-  });
-});
-
-// Health check route
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    database: 'connected'
-  });
-});
-
-// API routes
+// Public routes
 app.use('/api/auth', require('./routes/authRoutes'));
+
+// Protected routes
 app.use('/api/tasks', protect, require('./routes/taskRoutes'));
 app.use('/api/users', protect, require('./routes/userRoutes'));
 app.use('/api/invoices', protect, require('./routes/invoiceRoutes'));
 
-// Admin routes
-app.use('/api/admin', protect, admin, require('./routes/adminRoutes'));
-
-// Add this route before your other routes
-app.get('/api/debug/db', async (req, res) => {
-  try {
-    const tables = await debugDatabase();
-    res.json({ 
-      status: 'ok',
-      dbPath: path.join(process.cwd(), 'data', 'database.sqlite'),
-      tables,
-      env: {
-        NODE_ENV: process.env.NODE_ENV,
-        JWT_SECRET: process.env.JWT_SECRET ? 'set' : 'not set'
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      error: 'Database debug failed',
-      message: error.message 
-    });
-  }
-});
-
-// Add this route before your other routes
-app.get('/api/debug/test-db', async (req, res) => {
-  try {
-    // Test database connection
-    db.get("SELECT COUNT(*) as count FROM users", [], (err, row) => {
-      if (err) {
-        console.error('Database test error:', err);
-        res.status(500).json({ 
-          error: 'Database test failed',
-          message: err.message,
-          dbPath: dbPath
-        });
-      } else {
-        res.json({ 
-          status: 'ok',
-          userCount: row.count,
-          dbPath: dbPath,
-          tables: ['users', 'tasks']
-        });
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      error: 'Database test failed',
-      message: error.message,
-      dbPath: dbPath
-    });
-  }
-});
-
-// Add this route before your other routes
-app.delete('/api/admin/reset-db', async (req, res) => {
+// Admin-only reset route
+app.delete('/api/admin/reset-db', protect, admin, async (req, res) => {
   try {
     console.log('Starting database reset...');
     
@@ -145,56 +70,9 @@ app.delete('/api/admin/reset-db', async (req, res) => {
   }
 });
 
-// Add a route to check database status
-app.get('/api/admin/db-status', (req, res) => {
-  const fs = require('fs');
-  const dbPath = path.join(process.cwd(), 'data', 'database.sqlite');
-  
-  try {
-    // Check if database file exists
-    const exists = fs.existsSync(dbPath);
-    
-    // Test database connection
-    const { db } = require('./config/db');
-    db.get('SELECT COUNT(*) as count FROM sqlite_master', [], (err, row) => {
-      if (err) {
-        res.status(500).json({
-          status: 'error',
-          exists,
-          error: err.message,
-          path: dbPath
-        });
-      } else {
-        res.json({
-          status: 'ok',
-          exists,
-          tables: row.count,
-          path: dbPath
-        });
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      error: error.message,
-      path: dbPath
-    });
-  }
-});
-
-// Error handling for undefined routes
-app.use((req, res) => {
-  res.status(404).json({ 
-    error: 'Not Found',
-    message: `Route ${req.originalUrl} not found`,
-    availableEndpoints: [
-      '/api/auth/login',
-      '/api/auth/register',
-      '/api/tasks',
-      '/api/users',
-      '/api/invoices'
-    ]
-  });
+// Health check route
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Server is running' });
 });
 
 const PORT = process.env.PORT || 5001;
@@ -208,11 +86,6 @@ const start = async () => {
     
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
-      console.log('Available routes:');
-      console.log('- POST /api/auth/register');
-      console.log('- POST /api/auth/login');
-      console.log('- GET  /api/tasks');
-      console.log('- GET  /api/users');
     });
   } catch (error) {
     console.error('Failed to start server:', error);
