@@ -4,7 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const { initializeDb } = require('./config/db');
-const { protect, admin } = require('./middleware/authMiddleware');
+const { protect } = require('./middleware/authMiddleware');
 
 dotenv.config();
 
@@ -29,9 +29,14 @@ app.use('/api/tasks', protect, require('./routes/taskRoutes'));
 app.use('/api/users', protect, require('./routes/userRoutes'));
 app.use('/api/invoices', protect, require('./routes/invoiceRoutes'));
 
-// Admin-only reset route (using middleware chain)
-const resetDb = async (req, res) => {
+// Database reset route (protected)
+app.delete('/api/admin/reset-db', protect, async function(req, res) {
   try {
+    // Check if user is admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized as admin' });
+    }
+
     console.log('Starting database reset...');
     
     // Delete database file
@@ -68,9 +73,7 @@ const resetDb = async (req, res) => {
       stack: error.stack
     });
   }
-};
-
-app.delete('/api/admin/reset-db', protect, admin, resetDb);
+});
 
 // Health check route
 app.get('/health', (req, res) => {
