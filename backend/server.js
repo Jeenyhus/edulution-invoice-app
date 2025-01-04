@@ -70,6 +70,36 @@ app.get('/api/debug/db', async (req, res) => {
   }
 });
 
+// Add this route before your other routes
+app.get('/api/debug/test-db', async (req, res) => {
+  try {
+    // Test database connection
+    db.get("SELECT COUNT(*) as count FROM users", [], (err, row) => {
+      if (err) {
+        console.error('Database test error:', err);
+        res.status(500).json({ 
+          error: 'Database test failed',
+          message: err.message,
+          dbPath: dbPath
+        });
+      } else {
+        res.json({ 
+          status: 'ok',
+          userCount: row.count,
+          dbPath: dbPath,
+          tables: ['users', 'tasks']
+        });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      error: 'Database test failed',
+      message: error.message,
+      dbPath: dbPath
+    });
+  }
+});
+
 // Error handling for undefined routes
 app.use((req, res) => {
   res.status(404).json({ 

@@ -116,6 +116,7 @@ const login = async (req, res) => {
 
   try {
     console.log('Login attempt for email:', email);
+    console.log('Database path:', dbPath);
 
     // Input validation
     if (!email || !password) {
@@ -123,57 +124,85 @@ const login = async (req, res) => {
       return res.status(400).json({ message: 'Please provide email and password' });
     }
 
-    // Find user
-    db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
-      if (err) {
-        console.error('Database error during login:', err);
+    // First, check if the users table exists
+    db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='users'", [], (tableErr, tableExists) => {
+      if (tableErr) {
+        console.error('Error checking users table:', tableErr);
         return res.status(500).json({ 
-          message: 'Database error during login',
-          error: err.message 
+          message: 'Database error checking users table',
+          error: tableErr.message 
         });
       }
 
-      if (!user) {
-        console.log('User not found:', email);
-        return res.status(401).json({ message: 'Invalid credentials' });
+      if (!tableExists) {
+        console.error('Users table does not exist');
+        return res.status(500).json({ 
+          message: 'Database not properly initialized',
+          error: 'Users table missing' 
+        });
       }
 
-      try {
-        // Compare password
-        const isMatch = await bcrypt.compare(password, user.password);
-        
-        if (!isMatch) {
-          console.log('Password mismatch for user:', email);
+      // Find user
+      const query = 'SELECT * FROM users WHERE email = ?';
+      console.log('Executing query:', query, 'with email:', email);
+
+      db.get(query, [email], async (err, user) => {
+        if (err) {
+          console.error('Database error during login:', err);
+          return res.status(500).json({ 
+            message: 'Database error during login',
+            error: err.message 
+          });
+        }
+
+        console.log('User found:', user ? 'Yes' : 'No');
+
+        if (!user) {
+          console.log('User not found:', email);
           return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        // Create token
-        const token = jwt.sign(
-          { 
-            id: user.id, 
-            email: user.email,
-            role: user.role 
-          },
-          process.env.JWT_SECRET || 'fallback_secret',
-          { expiresIn: '24h' }
-        );
+        try {
+          // Compare password
+          console.log('Comparing passwords...');
+          const isMatch = await bcrypt.compare(password, user.password);
+          
+          console.log('Password match:', isMatch);
 
-        // Remove password from user object
-        const { password: _, ...userWithoutPassword } = user;
+          if (!isMatch) {
+            console.log('Password mismatch for user:', email);
+            return res.status(401).json({ message: 'Invalid credentials' });
+          }
 
-        console.log('Login successful for user:', email);
-        
-        res.json({
-          token,
-          user: userWithoutPassword
-        });
-      } catch (bcryptError) {
-        console.error('Password comparison error:', bcryptError);
-        return res.status(500).json({ 
-          message: 'Error during password verification',
-          error: bcryptError.message 
-        });
-      }
+          // Create token
+          console.log('Creating JWT token...');
+          const token = jwt.sign(
+            { 
+              id: user.id, 
+              email: user.email,
+              role: user.role 
+            },
+            process.env.JWT_SECRET || 'fallback_secret',
+            { expiresIn: '24h' }
+          );
+
+          // Remove password from user object
+          const { password: _, ...userWithoutPassword } = user;
+
+          console.log('Login successful for user:', email);
+          
+          res.json({
+            token,
+            user: userWithoutPassword
+          });
+        } catch (bcryptError) {
+          console.error('Password comparison error:', bcryptError);
+          return res.status(500).json({ 
+            message: 'Error during password verification',
+            error: bcryptError.message 
+          });
+        }
+      });
     });
   } catch (error) {
     console.error('Login error:', error);
