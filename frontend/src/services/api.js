@@ -43,26 +43,24 @@ api.interceptors.response.use(
 
 // Auth service
 export const authService = {
-  login: (credentials) => api.post('/auth/login', credentials),
-  register: (userData) => api.post('/auth/register', userData),
-  getCurrentUser: () => api.get('/auth/me')
+  register: (userData) => api.post('/api/auth/register', userData),
+  login: (credentials) => api.post('/api/auth/login', credentials),
+  getProfile: () => api.get('/api/users/profile')
 };
 
 // Task service
 export const taskService = {
-  getTasks: () => api.get('/tasks'),
-  createTask: (data) => api.post('/tasks', data),
-  updateTask: (id, data) => api.put(`/tasks/${id}`, data),
-  deleteTask: (id) => api.delete(`/tasks/${id}`)
+  getTasks: () => api.get('/api/tasks'),
+  createTask: (taskData) => api.post('/api/tasks', taskData),
+  updateTask: (id, taskData) => api.put(`/api/tasks/${id}`, taskData),
+  deleteTask: (id) => api.delete(`/api/tasks/${id}`)
 };
 
 // User service
 export const userService = {
-  getUsers: () => api.get('/users'),
-  createUser: (userData) => api.post('/users', userData),
-  updateUser: (id, userData) => api.put(`/users/${id}`, userData),
-  getProfile: () => api.get('/users/profile'),
-  updateProfile: (profileData) => api.put('/users/profile', profileData)
+  getUsers: () => api.get('/api/users'),
+  getProfile: () => api.get('/api/users/profile'),
+  updateProfile: (userData) => api.put('/api/users/profile', userData)
 };
 
 // Invoice service
