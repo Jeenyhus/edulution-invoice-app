@@ -80,6 +80,20 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
 });
 
+// Add this near the top with other routes
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Edulution Invoice API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      tasks: '/api/tasks',
+      users: '/api/users',
+      invoices: '/api/invoices'
+    }
+  });
+});
+
 const PORT = process.env.PORT || 5001;
 
 // Initialize database and start server
