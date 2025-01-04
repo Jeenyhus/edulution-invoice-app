@@ -2,7 +2,8 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const { protect } = require('./middleware/authMiddleware');
-const { initializeDb } = require('./config/db');
+const { initializeDb, debugDatabase } = require('./config/db');
+const path = require('path');
 
 dotenv.config();
 
@@ -47,6 +48,27 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/tasks', protect, require('./routes/taskRoutes'));
 app.use('/api/users', protect, require('./routes/userRoutes'));
 app.use('/api/invoices', protect, require('./routes/invoiceRoutes'));
+
+// Add this route before your other routes
+app.get('/api/debug/db', async (req, res) => {
+  try {
+    const tables = await debugDatabase();
+    res.json({ 
+      status: 'ok',
+      dbPath: path.join(process.cwd(), 'data', 'database.sqlite'),
+      tables,
+      env: {
+        NODE_ENV: process.env.NODE_ENV,
+        JWT_SECRET: process.env.JWT_SECRET ? 'set' : 'not set'
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      error: 'Database debug failed',
+      message: error.message 
+    });
+  }
+});
 
 // Error handling for undefined routes
 app.use((req, res) => {

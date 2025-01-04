@@ -47,8 +47,11 @@ const initializeDb = () => {
   return new Promise((resolve, reject) => {
     console.log('Starting database initialization...');
     
-    // Create users table with new columns
-    db.run(`
+    // Enable foreign keys
+    db.run('PRAGMA foreign_keys = ON');
+
+    // Create users table
+    const createUsersTable = `
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -64,16 +67,26 @@ const initializeDb = () => {
         phoneNumber TEXT,
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
       )
-    `, (err) => {
+    `;
+
+    db.run(createUsersTable, (err) => {
       if (err) {
         console.error('Error creating users table:', err);
         reject(err);
         return;
       }
-      console.log('Users table initialized');
+
+      // Verify users table exists and show schema
+      db.all("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'", [], (err, rows) => {
+        if (err) {
+          console.error('Error verifying table schema:', err);
+        } else {
+          console.log('Users table schema:', rows);
+        }
+      });
 
       // Create tasks table
-      db.run(`
+      const createTasksTable = `
         CREATE TABLE IF NOT EXISTS tasks (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           description TEXT NOT NULL,
@@ -87,18 +100,49 @@ const initializeDb = () => {
           createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (userId) REFERENCES users(id)
         )
-      `, (err) => {
+      `;
+
+      db.run(createTasksTable, (err) => {
         if (err) {
           console.error('Error creating tasks table:', err);
           reject(err);
           return;
         }
-        console.log('Tasks table initialized');
-        console.log('Database initialization completed successfully');
+
+        console.log('Database tables initialized successfully');
+        
+        // Test database connection and tables
+        db.get("SELECT COUNT(*) as count FROM users", [], (err, row) => {
+          if (err) {
+            console.error('Error testing users table:', err);
+          } else {
+            console.log('Users in database:', row.count);
+          }
+        });
+
         resolve();
       });
     });
   });
 };
 
-module.exports = { db, initializeDb };
+// Add debug function to check database state
+const debugDatabase = () => {
+  return new Promise((resolve, reject) => {
+    db.all("SELECT name FROM sqlite_master WHERE type='table'", [], (err, tables) => {
+      if (err) {
+        console.error('Error listing tables:', err);
+        reject(err);
+        return;
+      }
+      console.log('Database tables:', tables);
+      resolve(tables);
+    });
+  });
+};
+
+module.exports = { 
+  db, 
+  initializeDb,
+  debugDatabase 
+};
