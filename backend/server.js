@@ -1,7 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const { protect } = require('./middleware/authMiddleware');
+const { protect, admin } = require('./middleware/authMiddleware');
 const { initializeDb, debugDatabase, db } = require('./config/db');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
@@ -49,6 +49,9 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/tasks', protect, require('./routes/taskRoutes'));
 app.use('/api/users', protect, require('./routes/userRoutes'));
 app.use('/api/invoices', protect, require('./routes/invoiceRoutes'));
+
+// Admin routes
+app.use('/api/admin', protect, admin, require('./routes/adminRoutes'));
 
 // Add this route before your other routes
 app.get('/api/debug/db', async (req, res) => {
