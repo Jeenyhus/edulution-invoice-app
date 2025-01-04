@@ -265,7 +265,6 @@ function Dashboard() {
                   <div 
                     key={index} 
                     className="group flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-300 cursor-pointer"
-                    onClick={() => navigate(`/tasks/${task.id}`)}
                   >
                     <div className="flex-1">
                       <h3 className="text-sm font-medium text-gray-900 group-hover:text-black">{task.description}</h3>
