@@ -2,7 +2,7 @@ services:
   - type: web
     name: edulution-invoice-backend
     env: node
-    buildCommand: cd backend && npm install
+    buildCommand: cd backend && npm install && mkdir -p data
     startCommand: cd backend && node server.js
     envVars:
       - key: JWT_SECRET

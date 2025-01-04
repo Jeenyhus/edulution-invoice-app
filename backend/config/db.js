@@ -2,8 +2,8 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
-// Use different database paths for production and development
-const DATA_DIR = process.env.NODE_ENV === 'production' ? '/data' : __dirname;
+// Use data directory in the project root
+const DATA_DIR = path.join(process.cwd(), 'data');
 const dbPath = path.join(DATA_DIR, 'database.sqlite');
 
 // Ensure data directory exists
@@ -30,7 +30,7 @@ if (fs.existsSync(DATA_DIR)) {
 // Create database connection with verbose error logging
 let db;
 try {
-  db = new sqlite3.Database(dbPath, (err) => {
+  db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
     if (err) {
       console.error('Database connection error:', err);
       throw err;
