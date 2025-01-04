@@ -1,8 +1,13 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
+// Use different database paths for production and development
+const dbPath = process.env.NODE_ENV === 'production'
+  ? path.join('/data', 'database.sqlite')
+  : path.join(__dirname, 'database.sqlite');
+
 // Create database connection
-const db = new sqlite3.Database(path.join(__dirname, 'database.sqlite'));
+const db = new sqlite3.Database(dbPath);
 
 // Initialize database schema
 const initializeDb = () => {

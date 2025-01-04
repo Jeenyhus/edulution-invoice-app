@@ -1,8 +1,13 @@
 import axios from 'axios';
 
+const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
 // Create axios instance with base URL
 const api = axios.create({
-  baseURL: '/api'
+  baseURL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
 // Add request interceptor to add auth token
