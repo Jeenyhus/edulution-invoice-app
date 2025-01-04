@@ -1,17 +1,52 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
 // Use different database paths for production and development
-const dbPath = process.env.NODE_ENV === 'production'
-  ? path.join('/data', 'database.sqlite')
-  : path.join(__dirname, 'database.sqlite');
+const DATA_DIR = process.env.NODE_ENV === 'production' ? '/data' : __dirname;
+const dbPath = path.join(DATA_DIR, 'database.sqlite');
 
-// Create database connection
-const db = new sqlite3.Database(dbPath);
+// Ensure data directory exists
+if (!fs.existsSync(DATA_DIR)) {
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    console.log(`Created directory: ${DATA_DIR}`);
+  } catch (err) {
+    console.error(`Error creating directory: ${err}`);
+  }
+}
+
+// Log database path and permissions
+console.log(`Database path: ${dbPath}`);
+if (fs.existsSync(DATA_DIR)) {
+  try {
+    const stats = fs.statSync(DATA_DIR);
+    console.log(`Directory permissions: ${stats.mode}`);
+  } catch (err) {
+    console.error(`Error checking directory permissions: ${err}`);
+  }
+}
+
+// Create database connection with verbose error logging
+let db;
+try {
+  db = new sqlite3.Database(dbPath, (err) => {
+    if (err) {
+      console.error('Database connection error:', err);
+      throw err;
+    }
+    console.log('Connected to SQLite database');
+  });
+} catch (err) {
+  console.error('Failed to create database:', err);
+  throw err;
+}
 
 // Initialize database schema
 const initializeDb = () => {
   return new Promise((resolve, reject) => {
+    console.log('Starting database initialization...');
+    
     // Create users table with new columns
     db.run(`
       CREATE TABLE IF NOT EXISTS users (
@@ -35,6 +70,7 @@ const initializeDb = () => {
         reject(err);
         return;
       }
+      console.log('Users table initialized');
 
       // Create tasks table
       db.run(`
@@ -57,16 +93,12 @@ const initializeDb = () => {
           reject(err);
           return;
         }
-        console.log('Database initialized successfully');
+        console.log('Tasks table initialized');
+        console.log('Database initialization completed successfully');
         resolve();
       });
     });
   });
 };
-
-// Add logging for database errors
-db.on('error', (err) => {
-  console.error('Database error:', err);
-});
 
 module.exports = { db, initializeDb };
