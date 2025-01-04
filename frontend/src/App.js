@@ -11,40 +11,58 @@ import Profile from './pages/Profile';
 import LandingPage from './pages/LandingPage';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import ProtectedRoute from './components/ProtectedRoute';
+
+function AppRoutes() {
+  const { user } = useAuth();
+  
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<LandingPage />} />
+      <Route 
+        path="/login" 
+        element={user ? <Navigate to="/dashboard" /> : <Login />} 
+      />
+      <Route 
+        path="/register" 
+        element={user ? <Navigate to="/dashboard" /> : <Register />} 
+      />
+
+      {/* Protected Routes */}
+      <Route 
+        path="/dashboard" 
+        element={user ? <Dashboard /> : <Navigate to="/login" />} 
+      />
+      <Route 
+        path="/tasks" 
+        element={user ? <Tasks /> : <Navigate to="/login" />} 
+      />
+      <Route 
+        path="/invoices" 
+        element={user ? <Invoices /> : <Navigate to="/login" />} 
+      />
+      <Route 
+        path="/profile" 
+        element={user ? <Profile /> : <Navigate to="/login" />} 
+      />
+      <Route 
+        path="/users" 
+        element={user ? <Users /> : <Navigate to="/login" />} 
+      />
+
+      {/* 404 Route */}
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  );
+}
 
 function App() {
-  const { user } = useAuth();
-
   return (
     <Router>
       <AuthProvider>
         <div className="min-h-screen bg-gray-100">
           <Navbar />
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route 
-              path="/login" 
-              element={user ? <Navigate to="/dashboard" /> : <Login />} 
-            />
-            <Route 
-              path="/register" 
-              element={user ? <Navigate to="/dashboard" /> : <Register />} 
-            />
-
-            {/* Protected Routes */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/tasks" element={<Tasks />} />
-              <Route path="/invoices" element={<Invoices />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/users" element={<Users />} />
-            </Route>
-
-            {/* 404 Route */}
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+          <AppRoutes />
         </div>
         <ToastContainer />
       </AuthProvider>
