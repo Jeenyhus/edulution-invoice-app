@@ -100,6 +100,44 @@ app.get('/api/debug/test-db', async (req, res) => {
   }
 });
 
+// Add this route before your other routes
+app.delete('/api/admin/reset-db', async (req, res) => {
+  try {
+    // Close existing database connection
+    db.close((err) => {
+      if (err) {
+        console.error('Error closing database:', err);
+      }
+      console.log('Database connection closed');
+    });
+
+    // Delete database file
+    const fs = require('fs');
+    const dbPath = path.join(process.cwd(), 'data', 'database.sqlite');
+    
+    if (fs.existsSync(dbPath)) {
+      fs.unlinkSync(dbPath);
+      console.log('Database file deleted');
+    }
+
+    // Reinitialize database connection and schema
+    console.log('Reinitializing database...');
+    await initializeDb();
+    console.log('Database reinitialized');
+
+    res.json({ 
+      message: 'Database reset successful',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error resetting database:', error);
+    res.status(500).json({ 
+      error: 'Failed to reset database',
+      message: error.message 
+    });
+  }
+});
+
 // Error handling for undefined routes
 app.use((req, res) => {
   res.status(404).json({ 
