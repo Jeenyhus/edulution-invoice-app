@@ -6,18 +6,25 @@ const register = async (req, res) => {
   const { 
     name, 
     email, 
-    password, 
-    hourlyRate,
-    career,
-    bankName,
-    branchCode,
-    accountNumber,
-    address,
-    phoneNumber
+    password,
+    hourlyRate = 0,
+    career = '',
+    bankName = '',
+    branchCode = '',
+    accountNumber = '',
+    address = '',
+    phoneNumber = ''
   } = req.body;
 
   try {
-    // Check if user already exists
+    console.log('Registration attempt for email:', email);
+
+    // Input validation
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Please provide all required fields' });
+    }
+
+    // Check if user exists
     db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
       if (err) {
         console.error('Database error:', err);
@@ -28,67 +35,79 @@ const register = async (req, res) => {
         return res.status(400).json({ message: 'User already exists' });
       }
 
-      // Hash password
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
+      try {
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
-      // Create user with new fields
-      const sql = `
-        INSERT INTO users (
-          name, email, password, hourlyRate, career, 
-          bankName, branchCode, accountNumber, address, 
-          phoneNumber, role
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
+        // Create user
+        const sql = `
+          INSERT INTO users (
+            name, email, password, hourlyRate, career, 
+            bankName, branchCode, accountNumber, address, 
+            phoneNumber, role
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
 
-      db.run(sql, [
-        name, 
-        email, 
-        hashedPassword, 
-        hourlyRate,
-        career,
-        bankName,
-        branchCode,
-        accountNumber,
-        address,
-        phoneNumber,
-        'user'
-      ], function(err) {
-        if (err) {
-          console.error('Error creating user:', err);
-          return res.status(500).json({ message: 'Error creating user' });
-        }
-
-        // Generate JWT token
-        const token = jwt.sign(
-          { 
-            id: this.lastID, 
-            email, 
-            role: 'user',
-            career // Include career in token for easy access
-          },
-          process.env.JWT_SECRET,
-          { expiresIn: '24h' }
-        );
-
-        // Return user data and token
-        res.status(201).json({
-          token,
-          user: {
-            id: this.lastID,
-            name,
-            email,
-            hourlyRate,
-            career,
-            role: 'user'
+        db.run(sql, [
+          name, 
+          email, 
+          hashedPassword, 
+          hourlyRate,
+          career,
+          bankName,
+          branchCode,
+          accountNumber,
+          address,
+          phoneNumber,
+          'user'
+        ], function(err) {
+          if (err) {
+            console.error('Error creating user:', err);
+            return res.status(500).json({ message: 'Error creating user' });
           }
+
+          // Generate JWT token
+          const token = jwt.sign(
+            { 
+              id: this.lastID, 
+              email,
+              role: 'user'
+            },
+            process.env.JWT_SECRET || 'fallback_secret',
+            { expiresIn: '24h' }
+          );
+
+          console.log('Registration successful for user:', email);
+
+          // Return user data and token
+          res.status(201).json({
+            token,
+            user: {
+              id: this.lastID,
+              name,
+              email,
+              hourlyRate,
+              career,
+              role: 'user'
+            }
+          });
         });
-      });
+      } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ 
+          message: 'Server error during registration',
+          error: error.message 
+        });
+      }
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      message: 'Server error',
+      error: error.message 
+    });
   }
 };
 
@@ -96,42 +115,72 @@ const login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    console.log('Login attempt for email:', email);
+
+    // Input validation
+    if (!email || !password) {
+      console.log('Missing credentials');
+      return res.status(400).json({ message: 'Please provide email and password' });
+    }
+
     // Find user
     db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
       if (err) {
-        console.error('Database error:', err);
-        return res.status(500).json({ message: 'Server error' });
+        console.error('Database error during login:', err);
+        return res.status(500).json({ 
+          message: 'Database error during login',
+          error: err.message 
+        });
       }
 
       if (!user) {
+        console.log('User not found:', email);
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
-      // Check password
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(401).json({ message: 'Invalid credentials' });
+      try {
+        // Compare password
+        const isMatch = await bcrypt.compare(password, user.password);
+        
+        if (!isMatch) {
+          console.log('Password mismatch for user:', email);
+          return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        // Create token
+        const token = jwt.sign(
+          { 
+            id: user.id, 
+            email: user.email,
+            role: user.role 
+          },
+          process.env.JWT_SECRET || 'fallback_secret',
+          { expiresIn: '24h' }
+        );
+
+        // Remove password from user object
+        const { password: _, ...userWithoutPassword } = user;
+
+        console.log('Login successful for user:', email);
+        
+        res.json({
+          token,
+          user: userWithoutPassword
+        });
+      } catch (bcryptError) {
+        console.error('Password comparison error:', bcryptError);
+        return res.status(500).json({ 
+          message: 'Error during password verification',
+          error: bcryptError.message 
+        });
       }
-
-      // Generate JWT token
-      const token = jwt.sign(
-        { id: user.id, email: user.email, role: user.role },
-        process.env.JWT_SECRET,
-        { expiresIn: '24h' }
-      );
-
-      // Remove password from user object
-      const { password: _, ...userWithoutPassword } = user;
-
-      // Return user data and token
-      res.json({
-        user: userWithoutPassword,
-        token
-      });
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      message: 'Server error during login',
+      error: error.message 
+    });
   }
 };
 
