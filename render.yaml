@@ -9,15 +9,19 @@ services:
         generateValue: true
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 10000
 
-  - type: web
+  - type: static
     name: edulution-invoice-frontend
-    env: static
     buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: ./frontend/build
+    publishDirectory: frontend/build
     envVars:
       - key: REACT_APP_API_URL
-        fromService:
-          name: edulution-invoice-backend
-          type: web
-          property: url
+        value: https://edulution-invoice-backend.onrender.com
+      - key: NODE_ENV
+        value: production
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
