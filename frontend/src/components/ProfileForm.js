@@ -22,7 +22,7 @@ function ProfileForm({ onSubmit, initialData, onCancel }) {
     };
 
     try {
-      await onSubmit(updatedData);
+      await onSubmit({ event: e, data: updatedData });
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error('Failed to update profile');

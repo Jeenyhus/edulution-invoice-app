@@ -21,13 +21,22 @@ function Invoices() {
         dateRange.endDate
       );
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      // Ensure we're getting the blob data correctly
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `invoice-${dateRange.startDate}-to-${dateRange.endDate}.xlsx`);
+      
+      // Append to document, click, and cleanup
       document.body.appendChild(link);
       link.click();
-      link.remove();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error generating invoice:', error);
       alert('Error generating invoice. Please try again.');

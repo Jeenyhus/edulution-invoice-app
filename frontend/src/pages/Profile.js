@@ -104,10 +104,10 @@ function Profile() {
     return 'Just now';
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async ({ event, data }) => {
+    event.preventDefault();
     try {
-      await userService.updateProfile(formData);
+      await userService.updateProfile(data);
       await fetchProfileData();
       setIsEditing(false);
       toast.success('Profile updated successfully');

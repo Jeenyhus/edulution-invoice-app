@@ -3,20 +3,20 @@ const router = express.Router();
 const { db } = require('../config/db');
 const ExcelJS = require('exceljs');
 
-router.get('/:userId', async (req, res) => {
-  const { userId } = req.params;
+router.get('/', async (req, res) => {
+  const userId = req.user.id;
   const { startDate, endDate } = req.query;
+  console.log('Generating invoice for dates:', startDate, endDate);
 
   try {
     // Validate dates
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
       return res.status(400).json({ message: 'Invalid date format' });
     }
 
-    // Get user name for the title
+    // Get user info
     const getUserInfo = () => {
       return new Promise((resolve, reject) => {
         db.get('SELECT name, hourlyRate FROM users WHERE id = ?', [userId], (err, user) => {
@@ -32,7 +32,8 @@ router.get('/:userId', async (req, res) => {
     const userInfo = await getUserInfo();
     const date = new Date(startDate);
     const monthYear = `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
-    
+
+    // Get tasks
     const sql = `
       SELECT * FROM tasks 
       WHERE userId = ? 
@@ -50,8 +51,9 @@ router.get('/:userId', async (req, res) => {
     };
 
     const tasks = await getTasks();
+    console.log(`Found ${tasks.length} tasks for invoice generation`);
 
-    // Create workbook and worksheet
+    // Generate Excel workbook
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Time Sheet');
 
@@ -67,14 +69,17 @@ router.get('/:userId', async (req, res) => {
       { header: 'To', key: 'endTime', width: 10 },
       { header: 'Hours', key: 'hoursWorked', width: 10 },
       { header: 'Category', key: 'category', width: 15 },
-      { header: 'Extra Time', key: 'extraTime', width: 12 },
+      { header: 'Rate (ZMW)', key: 'rate', width: 12 },
+      { header: 'Amount (ZMW)', key: 'amount', width: 15 },
       { header: 'Description', key: 'description', width: 50 }
     ];
 
-    // Style the headers
+    // Style headers
     worksheet.getRow(2).font = { bold: true };
-    worksheet.getRow(2).border = {
-      bottom: { style: 'thin' }
+    worksheet.getRow(2).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' }
     };
 
     // Add data rows
@@ -84,26 +89,25 @@ router.get('/:userId', async (req, res) => {
         date: task.date,
         startTime: task.startTime,
         endTime: task.endTime,
-        hoursWorked: task.hoursWorked,
+        hoursWorked: Number(task.hoursWorked).toFixed(2),
         category: task.category,
-        rate: userInfo.hourlyRate,
-        amount: amount,
+        rate: Number(userInfo.hourlyRate).toFixed(2),
+        amount: Number(amount).toFixed(2),
         description: task.description
       });
     });
 
-    // Add total hours at the bottom
+    // Add totals
     const totalRow = worksheet.rowCount + 2;
-    worksheet.getCell(`A${totalRow}`).value = '';
-    worksheet.getCell(`B${totalRow}`).value = '';
-    worksheet.getCell(`C${totalRow}`).value = '';
-    worksheet.getCell(`D${totalRow}`).value = tasks.reduce((total, task) => {
-      const hours = parseFloat(task.hoursWorked) || 0;
-      return total + hours;
-    }, 0).toFixed(2);
-    worksheet.getCell(`D${totalRow}`).font = { bold: true };
+    const totalHours = tasks.reduce((total, task) => total + (parseFloat(task.hoursWorked) || 0), 0);
+    const totalAmount = totalHours * userInfo.hourlyRate;
 
-    // Apply borders to all cells
+    worksheet.getCell(`A${totalRow}`).value = 'Total';
+    worksheet.getCell(`D${totalRow}`).value = Number(totalHours).toFixed(2);
+    worksheet.getCell(`G${totalRow}`).value = Number(totalAmount).toFixed(2);
+    worksheet.getRow(totalRow).font = { bold: true };
+
+    // Apply borders
     worksheet.eachRow((row) => {
       row.eachCell((cell) => {
         cell.border = {
@@ -115,11 +119,10 @@ router.get('/:userId', async (req, res) => {
       });
     });
 
-    // Set response headers
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
+    console.log('Workbook generated successfully');
+
+    // Set headers and send response
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader(
       'Content-Disposition',
       `attachment; filename=${userInfo.name.replace(/\s+/g, '-')}-timesheet-${monthYear.replace(/\s+/g, '-')}.xlsx`
@@ -127,6 +130,8 @@ router.get('/:userId', async (req, res) => {
 
     // Write to response
     await workbook.xlsx.write(res);
+    res.end();
+
   } catch (error) {
     console.error('Invoice generation error:', error);
     res.status(500).json({ 

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with base URL
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api'
+  baseURL: '/api'
 });
 
 // Add request interceptor to add auth token
@@ -45,10 +45,21 @@ export const userService = {
 
 // Invoice service
 export const invoiceService = {
-  generateInvoice: (userId, startDate, endDate) => 
-    api.get(`/api/invoices/${userId}`, {
-      params: { startDate, endDate },
-      responseType: 'blob'
+  generateInvoice: (startDate, endDate) => 
+    api.get('/invoices', {
+      params: {
+        startDate,
+        endDate
+      },
+      responseType: 'blob',
+      // Add timeout and error handling
+      timeout: 30000, // 30 seconds
+      validateStatus: function (status) {
+        return status >= 200 && status < 300;
+      }
+    }).catch(error => {
+      console.error('Invoice API Error:', error.response || error);
+      throw error;
     })
 };
 
