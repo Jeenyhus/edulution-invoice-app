@@ -4,6 +4,7 @@ const cors = require('cors');
 const { protect } = require('./middleware/authMiddleware');
 const { initializeDb, debugDatabase, db } = require('./config/db');
 const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
 
 dotenv.config();
 
@@ -105,36 +106,31 @@ app.delete('/api/admin/reset-db', async (req, res) => {
   try {
     console.log('Starting database reset...');
     
-    // Close existing database connection
-    await new Promise((resolve, reject) => {
-      db.close((err) => {
-        if (err) {
-          console.error('Error closing database:', err);
-          reject(err);
-        } else {
-          console.log('Database connection closed');
-          resolve();
-        }
-      });
-    });
-
     // Delete database file
     const fs = require('fs');
     const dbPath = path.join(process.cwd(), 'data', 'database.sqlite');
     
-    if (fs.existsSync(dbPath)) {
-      fs.unlinkSync(dbPath);
-      console.log('Database file deleted');
-    }
+    // Create a new database connection
+    const newDb = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
+      if (err) {
+        console.error('Error creating new database:', err);
+        throw err;
+      }
+      console.log('Created new database connection');
+    });
 
-    // Reinitialize database connection and schema
-    console.log('Reinitializing database...');
+    // Update the db reference in the config
+    require('./config/db').db = newDb;
+
+    // Initialize the new database
+    console.log('Initializing new database...');
     await initializeDb();
-    console.log('Database reinitialized');
+    console.log('Database initialized successfully');
 
     res.json({ 
       message: 'Database reset successful',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      path: dbPath
     });
   } catch (error) {
     console.error('Error resetting database:', error);
@@ -142,6 +138,43 @@ app.delete('/api/admin/reset-db', async (req, res) => {
       error: 'Failed to reset database',
       message: error.message,
       stack: error.stack
+    });
+  }
+});
+
+// Add a route to check database status
+app.get('/api/admin/db-status', (req, res) => {
+  const fs = require('fs');
+  const dbPath = path.join(process.cwd(), 'data', 'database.sqlite');
+  
+  try {
+    // Check if database file exists
+    const exists = fs.existsSync(dbPath);
+    
+    // Test database connection
+    const { db } = require('./config/db');
+    db.get('SELECT COUNT(*) as count FROM sqlite_master', [], (err, row) => {
+      if (err) {
+        res.status(500).json({
+          status: 'error',
+          exists,
+          error: err.message,
+          path: dbPath
+        });
+      } else {
+        res.json({
+          status: 'ok',
+          exists,
+          tables: row.count,
+          path: dbPath
+        });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      error: error.message,
+      path: dbPath
     });
   }
 });
