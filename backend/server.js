@@ -2,7 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const { protect } = require('./middleware/authMiddleware');
-const { initializeDb, debugDatabase } = require('./config/db');
+const { initializeDb, debugDatabase, db } = require('./config/db');
 const path = require('path');
 
 dotenv.config();
@@ -103,12 +103,19 @@ app.get('/api/debug/test-db', async (req, res) => {
 // Add this route before your other routes
 app.delete('/api/admin/reset-db', async (req, res) => {
   try {
+    console.log('Starting database reset...');
+    
     // Close existing database connection
-    db.close((err) => {
-      if (err) {
-        console.error('Error closing database:', err);
-      }
-      console.log('Database connection closed');
+    await new Promise((resolve, reject) => {
+      db.close((err) => {
+        if (err) {
+          console.error('Error closing database:', err);
+          reject(err);
+        } else {
+          console.log('Database connection closed');
+          resolve();
+        }
+      });
     });
 
     // Delete database file
@@ -133,7 +140,8 @@ app.delete('/api/admin/reset-db', async (req, res) => {
     console.error('Error resetting database:', error);
     res.status(500).json({ 
       error: 'Failed to reset database',
-      message: error.message 
+      message: error.message,
+      stack: error.stack
     });
   }
 });
