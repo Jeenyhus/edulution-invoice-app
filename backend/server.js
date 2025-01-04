@@ -29,8 +29,8 @@ app.use('/api/tasks', protect, require('./routes/taskRoutes'));
 app.use('/api/users', protect, require('./routes/userRoutes'));
 app.use('/api/invoices', protect, require('./routes/invoiceRoutes'));
 
-// Admin-only reset route
-app.delete('/api/admin/reset-db', protect, admin, async (req, res) => {
+// Admin-only reset route (using middleware chain)
+const resetDb = async (req, res) => {
   try {
     console.log('Starting database reset...');
     
@@ -68,7 +68,9 @@ app.delete('/api/admin/reset-db', protect, admin, async (req, res) => {
       stack: error.stack
     });
   }
-});
+};
+
+app.delete('/api/admin/reset-db', protect, admin, resetDb);
 
 // Health check route
 app.get('/health', (req, res) => {
