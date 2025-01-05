@@ -7,10 +7,10 @@ const createAdminUser = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
     
-    const adminExists = await User.findOne({ email: 'admin@example.com' });
+    const adminExists = await User.findOne({ email: 'dmweemba@edulution.org' });
     
     if (adminExists) {
-      console.log('Admin user already exists');
+      console.log('Super admin already exists');
       process.exit(0);
     }
 
@@ -21,10 +21,12 @@ const createAdminUser = async () => {
       name: 'Dabwitso Mweemba',
       email: 'dmweemba@edulution.org',
       password: hashedPassword,
-      role: 'admin'
+      role: 'superadmin',
+      hourlyRate: 100,
+      career: 'Administrator'
     });
 
-    console.log('Admin user created:', admin);
+    console.log('Super admin created:', admin);
     process.exit(0);
   } catch (error) {
     console.error('Error:', error);

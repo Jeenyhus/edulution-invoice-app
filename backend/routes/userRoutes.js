@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
-const { getUsers, getUserById, getProfile, updateProfile } = require('../controllers/userController');
+const { getUsers, getUserById, getProfile, updateProfile, updateUser, toggleUserStatus } = require('../controllers/userController');
 const db = require('../config/db');
 
 // Add logging middleware
@@ -20,6 +20,7 @@ router.put('/profile', protect, updateProfile);
 // User management routes
 router.get('/', protect, getUsers);
 router.get('/:id', protect, getUserById);
+router.put('/:id', protect, updateUser);
 
 // Update hourly rate
 router.put('/:id/hourly-rate', protect, async (req, res) => {
@@ -44,5 +45,8 @@ router.put('/:id/hourly-rate', protect, async (req, res) => {
     res.status(500).json({ message: 'Failed to update hourly rate' });
   }
 });
+
+// Toggle user status
+router.put('/:id/status', protect, toggleUserStatus);
 
 module.exports = router;

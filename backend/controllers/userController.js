@@ -80,9 +80,98 @@ const updateProfile = async (req, res) => {
   }
 };
 
+const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userData = req.body;
+
+    console.log('Updating user:', { id, userData }); // Debug log
+
+    // Check if user exists
+    const existingUser = await User.getUserById(id);
+    if (!existingUser) {
+      console.log('User not found:', id); // Debug log
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Validate hourly rate
+    const hourlyRate = parseFloat(userData.hourlyRate);
+    if (isNaN(hourlyRate) || hourlyRate <= 0) {
+      return res.status(400).json({ message: 'Invalid hourly rate' });
+    }
+
+    // Update user data
+    const updatedData = {
+      name: userData.name,
+      email: userData.email,
+      hourlyRate: hourlyRate,
+      career: userData.career,
+      bankName: userData.bankName,
+      branchCode: userData.branchCode,
+      accountNumber: userData.accountNumber,
+      address: userData.address,
+      phoneNumber: userData.phoneNumber,
+      role: userData.role
+    };
+
+    await User.updateUser(id, updatedData);
+    
+    // Fetch and return updated user
+    const updatedUser = await User.getUserById(id);
+    if (!updatedUser) {
+      throw new Error('Failed to fetch updated user');
+    }
+
+    // Remove sensitive data
+    delete updatedUser.password;
+    
+    console.log('User updated successfully:', updatedUser); // Debug log
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Error updating user', error: error.message });
+  }
+};
+
+const toggleUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { disabled } = req.body;
+
+    // Check if user exists
+    const existingUser = await User.getUserById(id);
+    if (!existingUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Prevent disabling superadmin
+    if (existingUser.role === 'superadmin') {
+      return res.status(403).json({ message: 'Cannot disable superadmin account' });
+    }
+
+    await User.updateUserStatus(id, disabled);
+    
+    // Fetch and return updated user
+    const updatedUser = await User.getUserById(id);
+    if (!updatedUser) {
+      throw new Error('Failed to fetch updated user');
+    }
+
+    // Remove sensitive data
+    delete updatedUser.password;
+    
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Error updating user status:', error);
+    res.status(500).json({ message: 'Error updating user status' });
+  }
+};
+
 module.exports = {
   getUsers,
   getUserById,
   getProfile,
-  updateProfile
+  updateProfile,
+  updateUser,
+  toggleUserStatus
 }; 

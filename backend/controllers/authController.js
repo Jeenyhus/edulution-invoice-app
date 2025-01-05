@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { db } = require('../config/db');
 const bcrypt = require('bcryptjs');
+const User = require('../models/User');
 
 const register = async (req, res) => {
   try {
@@ -17,6 +18,13 @@ const register = async (req, res) => {
       phoneNumber
     } = req.body;
 
+    // Add email domain validation
+    if (!email.endsWith('@edulution.org')) {
+      return res.status(400).json({
+        error: 'Registration is only allowed for @edulution.org email addresses'
+      });
+    }
+
     // Validate hourly rate
     const parsedHourlyRate = parseFloat(hourlyRate);
     if (isNaN(parsedHourlyRate) || parsedHourlyRate <= 0) {
@@ -25,18 +33,25 @@ const register = async (req, res) => {
       });
     }
 
+    // Set role based on email
+    let role = 'user';
+    if (email === 'dmweemba@edulution.org') {
+      role = 'superadmin';
+    }
+
     // Continue with user creation using the parsed hourly rate
     const userData = {
       name,
       email,
       password,
-      hourlyRate: parsedHourlyRate, // Store as number
+      hourlyRate: parsedHourlyRate,
       career,
       bankName,
       branchCode,
       accountNumber,
       address,
-      phoneNumber
+      phoneNumber,
+      role
     };
 
     // Check if user already exists
@@ -75,7 +90,7 @@ const register = async (req, res) => {
         accountNumber,
         address,
         phoneNumber,
-        'user'
+        role
       ], function(err) {
         if (err) {
           console.error('Error creating user:', err);
@@ -87,7 +102,7 @@ const register = async (req, res) => {
           { 
             id: this.lastID, 
             email, 
-            role: 'user',
+            role,
             career // Include career in token for easy access
           },
           process.env.JWT_SECRET,
@@ -103,7 +118,7 @@ const register = async (req, res) => {
             email,
             hourlyRate,
             career,
-            role: 'user'
+            role
           }
         });
       });
@@ -117,45 +132,64 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
-
   try {
-    // Find user
-    db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).json({ message: 'Server error' });
-      }
+    const { email, password } = req.body;
 
-      if (!user) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-
-      // Check password
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-
-      // Generate JWT token
-      const token = jwt.sign(
-        { id: user.id, email: user.email, role: user.role },
-        process.env.JWT_SECRET,
-        { expiresIn: '24h' }
+    // Get user with all fields including disabled status
+    const user = await new Promise((resolve, reject) => {
+      db.get(
+        'SELECT * FROM users WHERE email = ?',
+        [email],
+        (err, row) => {
+          if (err) {
+            console.error('Database error:', err);
+            reject(err);
+          } else {
+            resolve(row);
+          }
+        }
       );
+    });
 
-      // Remove password from user object
-      const { password: _, ...userWithoutPassword } = user;
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
-      // Return user data and token
-      res.json({
-        user: userWithoutPassword,
-        token
+    // Check if account is disabled
+    if (user.disabled === 1) {
+      return res.status(403).json({ 
+        error: 'Your account has been disabled. Please contact an administrator to restore your account.' 
       });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        id: user.id, 
+        email: user.email, 
+        role: user.role 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    // Remove sensitive data before sending response
+    delete user.password;
+
+    console.log('Login successful for user:', { id: user.id, email: user.email, role: user.role });
+
+    res.json({
+      token,
+      user
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ error: 'Error logging in' });
   }
 };
 

@@ -11,6 +11,9 @@ import Register from './pages/Register';
 import Profile from './pages/Profile';
 import LandingPage from './pages/LandingPage';
 import { ToastContainer } from 'react-toastify';
+import Reports from './pages/Reports';
+import Settings from './pages/Settings';
+import System from './pages/System';
 
 function App() {
   return (
@@ -48,7 +51,7 @@ function App() {
             <Route
               path="/users"
               element={
-                <PrivateRoute>
+                <PrivateRoute requireAdmin>
                   <div>
                     <Navbar />
                     <Users />
@@ -74,6 +77,39 @@ function App() {
                   <div>
                     <Navbar />
                     <Profile />
+                  </div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <PrivateRoute requireAdmin>
+                  <div>
+                    <Navbar />
+                    <Reports />
+                  </div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <PrivateRoute requireAdmin>
+                  <div>
+                    <Navbar />
+                    <Settings />
+                  </div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/system"
+              element={
+                <PrivateRoute requireSuperAdmin>
+                  <div>
+                    <Navbar />
+                    <System />
                   </div>
                 </PrivateRoute>
               }

@@ -53,6 +53,9 @@ function Register() {
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
       isValid = false;
+    } else if (!formData.email.endsWith('@edulution.org')) {
+      newErrors.email = 'Only @edulution.org email addresses are allowed';
+      isValid = false;
     }
 
     // Password validation
@@ -116,6 +119,12 @@ function Register() {
       };
       await register(submitData);
       setShowSuccess(true);
+      // Add navigation after successful registration
+      setTimeout(() => {
+        navigate('/login', { 
+          state: { showRegistrationSuccess: true }
+        });
+      }, 2000);
     } catch (error) {
       console.log('Registration error:', error);
       setError('Registration failed. Please try again.');
@@ -218,18 +227,22 @@ function Register() {
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Email Address
+                    <span className="text-xs text-gray-500 ml-1">(must be an @edulution.org email)</span>
                   </label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full px-3 py-2 border ${
-                      errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    } rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
+                    className={`mt-1 block w-full rounded-md ${
+                      errors.email 
+                        ? 'border-red-500 dark:border-red-400' 
+                        : 'border-gray-300 dark:border-gray-600'
+                    } dark:bg-gray-700 dark:text-white shadow-sm focus:border-black dark:focus:border-gray-300 focus:ring-black dark:focus:ring-gray-300`}
                     required
+                    pattern=".*@edulution\.org$"
                   />
                   {errors.email && (
                     <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>

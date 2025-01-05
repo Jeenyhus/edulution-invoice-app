@@ -97,7 +97,7 @@ function Login() {
       await login(credentials.email, credentials.password);
       navigate('/dashboard', { state: { showSuccessMessage: true } });
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to login');
+      setError(error.response?.data?.error || 'Failed to login');
     } finally {
       setLoading(false);
     }

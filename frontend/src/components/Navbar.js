@@ -8,6 +8,13 @@ function Navbar() {
   const location = useLocation();
   const { user, logout } = useAuth();
 
+  // Debug log to check user object
+  console.log('Current user:', user);
+  
+  // Check if user has admin privileges
+  const isAdminUser = user?.role === 'admin' || user?.role === 'superadmin';
+  console.log('Is admin user:', isAdminUser);
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -19,13 +26,11 @@ function Navbar() {
 
   const getLinkClasses = (path) => {
     const isActive = location.pathname === path;
-    return `relative px-3 py-2 text-sm font-medium transition-colors
-      ${isActive 
-        ? 'text-primary-DEFAULT dark:text-primary-light' 
+    return `px-3 py-2 text-sm font-medium ${
+      isActive
+        ? 'text-gray-900 dark:text-white'
         : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-      }
-      ${isActive ? 'after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary-DEFAULT dark:after:bg-primary-light' : ''}
-    `;
+    }`;
   };
 
   return (
@@ -33,19 +38,15 @@ function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Left side - Logo */}
-          <div className="hidden md:flex flex-shrink-0 items-center">
+          <div className="flex-shrink-0 flex items-center">
             <Link to="/dashboard">
-              <img
-                src="/favicon_confluence.png"
-                alt="Logo"
-                className="h-8 w-auto"
-              />
+              <img src="/favicon_confluence.png" alt="Logo" className="h-8 w-auto" />
             </Link>
           </div>
 
           {/* Center - Desktop Navigation */}
           <div className="hidden md:flex md:items-center md:justify-center flex-1 px-8">
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-4">
               <Link to="/dashboard" className={getLinkClasses('/dashboard')}>
                 Dashboard
               </Link>
@@ -55,9 +56,22 @@ function Navbar() {
               <Link to="/invoices" className={getLinkClasses('/invoices')}>
                 Invoices
               </Link>
-              {user?.role === 'admin' && (
-                <Link to="/users" className={getLinkClasses('/users')}>
-                  Users
+              {isAdminUser && (
+                <>
+                  <Link to="/users" className={getLinkClasses('/users')}>
+                    Users
+                  </Link>
+                  <Link to="/reports" className={getLinkClasses('/reports')}>
+                    Reports
+                  </Link>
+                  <Link to="/settings" className={getLinkClasses('/settings')}>
+                    Settings
+                  </Link>
+                </>
+              )}
+              {user?.role === 'superadmin' && (
+                <Link to="/system" className={getLinkClasses('/system')}>
+                  System
                 </Link>
               )}
             </div>
@@ -128,13 +142,38 @@ function Navbar() {
             >
               Invoices
             </Link>
-            {user?.role === 'admin' && (
+            {isAdminUser && (
+              <>
+                <Link
+                  to="/users"
+                  className={`block ${getLinkClasses('/users')}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Users
+                </Link>
+                <Link
+                  to="/reports"
+                  className={`block ${getLinkClasses('/reports')}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Reports
+                </Link>
+                <Link
+                  to="/settings"
+                  className={`block ${getLinkClasses('/settings')}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Settings
+                </Link>
+              </>
+            )}
+            {user?.role === 'superadmin' && (
               <Link
-                to="/users"
-                className={`block ${getLinkClasses('/users')}`}
+                to="/system"
+                className={`block ${getLinkClasses('/system')}`}
                 onClick={() => setIsMenuOpen(false)}
               >
-                Users
+                System
               </Link>
             )}
           </div>
