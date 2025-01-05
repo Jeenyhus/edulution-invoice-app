@@ -68,9 +68,12 @@ function Dashboard() {
       const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
       startOfWeek.setHours(0, 0, 0, 0);
 
+      const thisWeekTasks = tasks.filter(task => new Date(task.date) >= startOfWeek);
+      const thisWeekHours = thisWeekTasks.reduce((acc, task) => acc + (parseFloat(task.hoursWorked) || 0), 0);
+
       setTaskStats({
         totalTasks: tasks.length,
-        thisWeekTasks: tasks.filter(task => new Date(task.date) >= startOfWeek).length
+        thisWeekTasks: Math.round(thisWeekHours * 100) / 100 // Round to 2 decimal places
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
