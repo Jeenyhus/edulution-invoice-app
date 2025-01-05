@@ -1,5 +1,6 @@
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
@@ -7,7 +8,6 @@ import Users from './pages/Users';
 import Invoices from './pages/Invoices';
 import Navbar from './components/Navbar';
 import Register from './pages/Register';
-import { useEffect } from 'react';
 import Profile from './pages/Profile';
 import LandingPage from './pages/LandingPage';
 import { ToastContainer } from 'react-toastify';
@@ -21,6 +21,8 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            
+            {/* Protected Routes */}
             <Route
               path="/dashboard"
               element={
@@ -35,28 +37,34 @@ function App() {
             <Route
               path="/tasks"
               element={
-                <div>
-                  <Navbar />
-                  <Tasks />
-                </div>
+                <PrivateRoute>
+                  <div>
+                    <Navbar />
+                    <Tasks />
+                  </div>
+                </PrivateRoute>
               }
             />
             <Route
               path="/users"
               element={
-                <div>
-                  <Navbar />
-                  <Users />
-                </div>
+                <PrivateRoute>
+                  <div>
+                    <Navbar />
+                    <Users />
+                  </div>
+                </PrivateRoute>
               }
             />
             <Route
               path="/invoices"
               element={
-                <div>
-                  <Navbar />
-                  <Invoices />
-                </div>
+                <PrivateRoute>
+                  <div>
+                    <Navbar />
+                    <Invoices />
+                  </div>
+                </PrivateRoute>
               }
             />
             <Route
@@ -81,19 +89,5 @@ function App() {
     </Router>
   );
 }
-
-// PrivateRoute component to protect routes
-const PrivateRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-    }
-  }, [isAuthenticated, navigate]);
-
-  return isAuthenticated ? children : null;
-};
 
 export default App;
