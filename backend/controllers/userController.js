@@ -133,10 +133,45 @@ const updateUser = async (req, res) => {
   }
 };
 
+const toggleUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { disabled } = req.body;
+
+    // Check if user exists
+    const existingUser = await User.getUserById(id);
+    if (!existingUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Prevent disabling superadmin
+    if (existingUser.role === 'superadmin') {
+      return res.status(403).json({ message: 'Cannot disable superadmin account' });
+    }
+
+    await User.updateUserStatus(id, disabled);
+    
+    // Fetch and return updated user
+    const updatedUser = await User.getUserById(id);
+    if (!updatedUser) {
+      throw new Error('Failed to fetch updated user');
+    }
+
+    // Remove sensitive data
+    delete updatedUser.password;
+    
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Error updating user status:', error);
+    res.status(500).json({ message: 'Error updating user status' });
+  }
+};
+
 module.exports = {
   getUsers,
   getUserById,
   getProfile,
   updateProfile,
-  updateUser
+  updateUser,
+  toggleUserStatus
 }; 

@@ -22,6 +22,7 @@ const initializeDb = () => {
         accountNumber TEXT,
         address TEXT,
         phoneNumber TEXT,
+        disabled INTEGER DEFAULT 0,
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `, (err) => {

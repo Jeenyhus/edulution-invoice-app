@@ -59,7 +59,23 @@ export const userService = {
     }
   },
   getProfile: () => api.get('/users/profile'),
-  updateProfile: (profileData) => api.put('/users/profile', profileData)
+  updateProfile: (profileData) => api.put('/users/profile', profileData),
+  updateUserStatus: async (userId, disabled) => {
+    try {
+      const response = await axios.put(`/api/users/${userId}/status`, 
+        { disabled },
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      return response;
+    } catch (error) {
+      console.error('API Error:', error.response || error);
+      throw error;
+    }
+  }
 };
 
 // Invoice service

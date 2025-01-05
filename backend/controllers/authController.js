@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { db } = require('../config/db');
 const bcrypt = require('bcryptjs');
+const User = require('../models/User');
 
 const register = async (req, res) => {
   try {
@@ -134,53 +135,61 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Add email domain validation
-    if (!email.endsWith('@edulution.org')) {
-      return res.status(401).json({
-        error: 'Access restricted to @edulution.org email addresses only'
+    // Get user with all fields including disabled status
+    const user = await new Promise((resolve, reject) => {
+      db.get(
+        'SELECT * FROM users WHERE email = ?',
+        [email],
+        (err, row) => {
+          if (err) {
+            console.error('Database error:', err);
+            reject(err);
+          } else {
+            resolve(row);
+          }
+        }
+      );
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Check if account is disabled
+    if (user.disabled === 1) {
+      return res.status(403).json({ 
+        error: 'Your account has been disabled. Please contact an administrator to restore your account.' 
       });
     }
 
-    // Find user
-    db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).json({ message: 'Server error' });
-      }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
-      if (!user) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        id: user.id, 
+        email: user.email, 
+        role: user.role 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
 
-      // Check password
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
+    // Remove sensitive data before sending response
+    delete user.password;
 
-      // Generate JWT token with role
-      const token = jwt.sign(
-        { 
-          id: user.id, 
-          email: user.email,
-          role: user.role
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: '24h' }
-      );
+    console.log('Login successful for user:', { id: user.id, email: user.email, role: user.role });
 
-      // Remove password from user object
-      const { password: _, ...userWithoutPassword } = user;
-
-      // Return user data and token
-      res.json({
-        user: userWithoutPassword,
-        token
-      });
+    res.json({
+      token,
+      user
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Error logging in' });
   }
 };
 

@@ -54,6 +54,21 @@ function Users() {
     }
   };
 
+  const handleToggleUserStatus = async (user) => {
+    try {
+      const response = await userService.updateUserStatus(user.id, !user.disabled);
+      if (response.data) {
+        setUsers(users.map(u => 
+          u.id === user.id ? response.data : u
+        ));
+        toast.success(`User ${response.data.disabled ? 'disabled' : 'enabled'} successfully`);
+      }
+    } catch (error) {
+      console.error('Error updating user status:', error);
+      toast.error(error.response?.data?.message || 'Failed to update user status');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
@@ -261,15 +276,22 @@ function Users() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
-                        onClick={() => setEditingUser(user)}
-                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4"
+                        onClick={() => handleToggleUserStatus(user)}
+                        className={`${
+                          user.disabled 
+                            ? 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'
+                            : 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300'
+                        } mr-4`}
+                        disabled={user.role === 'superadmin'}
+                        title={user.role === 'superadmin' ? 'Cannot disable superadmin account' : ''}
                       >
-                        Edit
+                        {user.disabled ? 'Enable' : 'Disable'}
                       </button>
                       <button
-                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        onClick={() => setEditingUser(user)}
+                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
                       >
-                        Disable
+                        Edit
                       </button>
                     </td>
                   </tr>
