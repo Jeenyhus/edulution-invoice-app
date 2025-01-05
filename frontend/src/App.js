@@ -16,7 +16,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
@@ -71,7 +71,11 @@ function App() {
               }
             />
           </Routes>
-          <ToastContainer position="top-right" autoClose={3000} />
+          <ToastContainer 
+            theme="automatic" // This will match system theme
+            position="top-right" 
+            autoClose={3000} 
+          />
         </div>
       </AuthProvider>
     </Router>

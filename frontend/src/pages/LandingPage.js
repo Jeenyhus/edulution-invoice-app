@@ -5,12 +5,12 @@ function LandingPage() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
         {/* Enhanced Hero Section with better spacing */}
         <div className="max-w-4xl mx-auto text-center my-12 sm:my-20">
           <div className="space-y-16 animate-fade-in">
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-black tracking-tighter pt-8">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white tracking-tighter pt-8">
               <span className="inline-block animate-slide-up opacity-0 [animation-delay:200ms]">
                 Simplify Your
               </span>{" "}
@@ -21,7 +21,7 @@ function LandingPage() {
                 Management
               </span>
             </h1>
-            <p className="text-xl sm:text-2xl text-gray-600 max-w-2xl mx-auto animate-fade-in opacity-0 [animation-delay:800ms] px-4">
+            <p className="text-xl sm:text-2xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto animate-fade-in opacity-0 [animation-delay:800ms] px-4">
               Streamline your time tracking, task logging, and invoice generation in one powerful platform.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fade-in opacity-0 [animation-delay:1000ms] py-8">
@@ -80,8 +80,8 @@ function LandingPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold mb-3">Time Tracking</h3>
-            <p className="text-gray-600">Effortlessly log your work hours with precision.</p>
+            <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Time Tracking</h3>
+            <p className="text-gray-600 dark:text-gray-300">Effortlessly log your work hours with precision.</p>
           </div>
           
           <div className="text-center">
@@ -90,8 +90,8 @@ function LandingPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold mb-3">Invoice Generation</h3>
-            <p className="text-gray-600">Automatically generate professional invoices from your logged tasks.</p>
+            <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Invoice Generation</h3>
+            <p className="text-gray-600 dark:text-gray-300">Automatically generate professional invoices from your logged tasks.</p>
           </div>
 
           <div className="text-center">
@@ -100,8 +100,8 @@ function LandingPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold mb-3">Analytics</h3>
-            <p className="text-gray-600">Track your progress and earnings with detailed insights.</p>
+            <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Analytics</h3>
+            <p className="text-gray-600 dark:text-gray-300">Track your progress and earnings with detailed insights.</p>
           </div>
         </div>
 

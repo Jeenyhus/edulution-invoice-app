@@ -21,29 +21,31 @@ function Navbar() {
     const isActive = location.pathname === path;
     return `relative px-3 py-2 text-sm font-medium transition-colors
       ${isActive 
-        ? 'text-[#0072cd]' 
-        : 'text-gray-600 hover:text-gray-900'
+        ? 'text-primary-DEFAULT dark:text-primary-light' 
+        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
       }
-      ${isActive ? 'after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#0072cd]' : ''}
+      ${isActive ? 'after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary-DEFAULT dark:after:bg-primary-light' : ''}
     `;
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200">
+    <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          {/* Left side - Logo and Desktop Navigation */}
-          <div className="flex items-center">
-          <Link to="/dashboard" className="flex-shrink-0 hidden md:flex items-center">
-    <img
-      src="/favicon_confluence.png"
-      alt="Logo"
-      className="h-8 w-auto"
-    />
-  </Link>
-  
-  {/* Desktop Navigation */}
-  <div className="hidden md:ml-8 md:flex md:items-center md:space-x-1">
+          {/* Left side - Logo */}
+          <div className="hidden md:flex flex-shrink-0 items-center">
+            <Link to="/dashboard">
+              <img
+                src="/favicon_confluence.png"
+                alt="Logo"
+                className="h-8 w-auto"
+              />
+            </Link>
+          </div>
+
+          {/* Center - Desktop Navigation */}
+          <div className="hidden md:flex md:items-center md:justify-center flex-1 px-8">
+            <div className="flex items-center space-x-1">
               <Link to="/dashboard" className={getLinkClasses('/dashboard')}>
                 Dashboard
               </Link>
@@ -61,45 +63,40 @@ function Navbar() {
             </div>
           </div>
 
-          {/* Right side - User Menu & Mobile Menu Button */}
-          <div className="flex items-center">
-            {/* Desktop User Menu */}
-            <div className="hidden md:flex md:items-center md:space-x-2">
-              <Link 
+          {/* Right side - User Menu */}
+          <div className="hidden md:flex md:items-center">
+            <div className="flex items-center space-x-4">
+              <Link
                 to="/profile"
-                className="p-2 rounded-full hover:bg-gray-100"
+                className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
-                <img
-                  src={`https://ui-avatars.com/api/?name=${user?.name}&background=0072cd&color=fff`}
-                  alt={user?.name}
-                  className="h-8 w-8 rounded-full"
-                />
+                Profile
               </Link>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 Logout
               </button>
             </div>
+          </div>
 
-            {/* Mobile Menu Button */}
+          {/* Mobile menu button */}
+          <div className="flex items-center md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-md text-gray-700 hover:bg-gray-100 focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
-              <svg 
-                className="h-6 w-6" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                {isMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
+              <span className="sr-only">Open main menu</span>
+              {isMenuOpen ? (
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
             </button>
           </div>
         </div>
@@ -107,8 +104,9 @@ function Navbar() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-gray-200">
-          <div className="px-2 pt-2 pb-3 space-y-1">
+        <div className="md:hidden bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+          {/* Mobile Navigation Links */}
+          <div className="px-4 pt-2 pb-3 space-y-1 flex flex-col items-center">
             <Link
               to="/dashboard"
               className={`block ${getLinkClasses('/dashboard')}`}
@@ -142,11 +140,11 @@ function Navbar() {
           </div>
           
           {/* Mobile User Menu */}
-          <div className="pt-4 pb-3 border-t border-gray-200">
-            <div className="px-2 space-y-1">
+          <div className="pt-4 pb-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="px-4 space-y-1 flex flex-col items-center">
               <Link
                 to="/profile"
-                className="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md"
+                className="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Profile
@@ -156,7 +154,7 @@ function Navbar() {
                   handleLogout();
                   setIsMenuOpen(false);
                 }}
-                className="block w-full text-left px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md"
+                className="block w-full text-center px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
               >
                 Logout
               </button>

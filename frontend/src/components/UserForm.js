@@ -19,7 +19,7 @@ function UserForm({ onSubmit, initialData = null }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700">Name</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
         <input
           type="text"
           name="name"
@@ -28,13 +28,13 @@ function UserForm({ onSubmit, initialData = null }) {
             ...prev,
             name: e.target.value
           }))}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400"
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Email</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
         <input
           type="email"
           name="email"
@@ -43,13 +43,13 @@ function UserForm({ onSubmit, initialData = null }) {
             ...prev,
             email: e.target.value
           }))}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400"
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Role</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Role</label>
         <select
           name="role"
           value={formData.role}
@@ -57,7 +57,7 @@ function UserForm({ onSubmit, initialData = null }) {
             ...prev,
             role: e.target.value
           }))}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400"
         >
           <option value="user">User</option>
           <option value="admin">Admin</option>
@@ -65,7 +65,7 @@ function UserForm({ onSubmit, initialData = null }) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           Hourly Rate ($)
         </label>
         <input
@@ -78,7 +78,7 @@ function UserForm({ onSubmit, initialData = null }) {
             ...prev,
             hourlyRate: e.target.value
           }))}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400"
           required
         />
       </div>

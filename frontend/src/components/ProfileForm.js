@@ -32,85 +32,85 @@ function ProfileForm({ onSubmit, initialData, onCancel }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700">Name</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
         <input
           type="text"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black"
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-black dark:focus:border-gray-300 focus:ring-black dark:focus:ring-gray-300"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Email</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
         <input
           type="email"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black"
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-black dark:focus:border-gray-300 focus:ring-black dark:focus:ring-gray-300"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Career</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Career</label>
         <input
           type="text"
           value={formData.career}
           onChange={(e) => setFormData({ ...formData, career: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black"
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-black dark:focus:border-gray-300 focus:ring-black dark:focus:ring-gray-300"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Hourly Rate (ZMW)</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hourly Rate (ZMW)</label>
         <input
           type="number"
           step="0.01"
           min="0"
           value={formData.hourlyRate}
           onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black"
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-black dark:focus:border-gray-300 focus:ring-black dark:focus:ring-gray-300"
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Address</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
         <input
           type="text"
           value={formData.address}
           onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black"
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-black dark:focus:border-gray-300 focus:ring-black dark:focus:ring-gray-300"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Bank Name</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Bank Name</label>
         <input
           type="text"
           value={formData.bankName}
           onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black"
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-black dark:focus:border-gray-300 focus:ring-black dark:focus:ring-gray-300"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Branch Code</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Branch Code</label>
         <input
           type="text"
           value={formData.branchCode}
           onChange={(e) => setFormData({ ...formData, branchCode: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black"
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-black dark:focus:border-gray-300 focus:ring-black dark:focus:ring-gray-300"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Account Number</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Account Number</label>
         <input
           type="text"
           value={formData.accountNumber}
           onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black"
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-black dark:focus:border-gray-300 focus:ring-black dark:focus:ring-gray-300"
         />
       </div>
 
@@ -124,7 +124,7 @@ function ProfileForm({ onSubmit, initialData, onCancel }) {
         </button>
         <button
           type="submit"
-          className="px-4 py-2 text-sm font-medium text-white bg-black rounded-md hover:bg-gray-800"
+          className="px-4 py-2 text-sm font-medium text-white bg-black dark:bg-gray-700 rounded-md hover:bg-gray-800 dark:hover:bg-gray-600"
         >
           Save Changes
         </button>

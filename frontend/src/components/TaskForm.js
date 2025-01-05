@@ -115,25 +115,25 @@ function TaskForm({ onSubmit, initialData = null }) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-900">Date</label>
+          <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Date</label>
           <input
             type="date"
             name="date"
             value={formData.date}
             onChange={handleChange}
-            className="mt-2 block w-full rounded-md border-gray-200 bg-white px-4 py-2 text-gray-900 shadow-sm hover:border-gray-900 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+            className="mt-2 block w-full rounded-md border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-900 dark:text-gray-100 shadow-sm hover:border-gray-900 dark:hover:border-gray-500 focus:border-gray-900 dark:focus:border-gray-500 focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-500"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-900">Shift</label>
+          <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Shift</label>
           <select
             name="shift"
             value={formData.shift}
             onChange={handleChange}
-            className={`mt-2 block w-full rounded-md border-gray-200 bg-white px-4 py-2 text-gray-900 shadow-sm hover:border-gray-900 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 ${
-              existingShifts[formData.shift] && !initialData ? 'bg-gray-100 cursor-not-allowed' : ''
+            className={`mt-2 block w-full rounded-md border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-900 dark:text-gray-100 shadow-sm hover:border-gray-900 dark:hover:border-gray-500 focus:border-gray-900 dark:focus:border-gray-500 focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-500 ${
+              existingShifts[formData.shift] && !initialData ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''
             }`}
             required
           >
@@ -141,66 +141,66 @@ function TaskForm({ onSubmit, initialData = null }) {
             <option value="afternoon" disabled={existingShifts.afternoon && !initialData}>Afternoon</option>
           </select>
           {existingShifts[formData.shift] && !initialData && (
-            <p className="mt-1 text-sm text-red-600">This shift is already taken</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">This shift is already taken</p>
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-900">Start Time</label>
+          <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Start Time</label>
           <input
             type="time"
             name="startTime"
             value={formData.startTime}
             onChange={handleChange}
-            className="mt-2 block w-full rounded-md border-gray-200 bg-white px-4 py-2 text-gray-900 shadow-sm hover:border-gray-900 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+            className="mt-2 block w-full rounded-md border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-900 dark:text-gray-100 shadow-sm hover:border-gray-900 dark:hover:border-gray-500 focus:border-gray-900 dark:focus:border-gray-500 focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-500"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-900">End Time</label>
+          <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">End Time</label>
           <input
             type="time"
             name="endTime"
             value={formData.endTime}
             onChange={handleChange}
-            className="mt-2 block w-full rounded-md border-gray-200 bg-white px-4 py-2 text-gray-900 shadow-sm hover:border-gray-900 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+            className="mt-2 block w-full rounded-md border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-900 dark:text-gray-100 shadow-sm hover:border-gray-900 dark:hover:border-gray-500 focus:border-gray-900 dark:focus:border-gray-500 focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-500"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-900">Category</label>
+          <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Category</label>
           <input
             type="text"
             name="category"
             value={user?.career || formData.category}
             readOnly
-            className="mt-2 block w-full rounded-md border-gray-200 bg-gray-100 px-4 py-2 text-gray-900 shadow-sm"
+            className="mt-2 block w-full rounded-md border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 px-4 py-2 text-gray-900 dark:text-gray-200 shadow-sm"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-900">Hours Worked</label>
+          <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Hours Worked</label>
           <input
             type="number"
             name="hoursWorked"
             value={formData.hoursWorked}
             readOnly
             step="0.5"
-            className="mt-2 block w-full rounded-md border-gray-200 bg-gray-100 px-4 py-2 text-gray-900 shadow-sm"
+            className="mt-2 block w-full rounded-md border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 px-4 py-2 text-gray-900 dark:text-gray-100 shadow-sm"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-900">Description</label>
+        <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Description</label>
         <textarea
           name="description"
           value={formData.description}
           onChange={handleChange}
           rows={3}
-          className="mt-2 block w-full rounded-md border-gray-200 bg-white px-4 py-2 text-gray-900 shadow-sm hover:border-gray-900 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+          className="mt-2 block w-full rounded-md border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-900 dark:text-gray-100 shadow-sm hover:border-gray-900 dark:hover:border-gray-500 focus:border-gray-900 dark:focus:border-gray-500 focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-500"
           required
         />
       </div>
