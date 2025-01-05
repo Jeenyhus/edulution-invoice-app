@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { db } = require('../config/db');
+const { db, getDb } = require('../config/db');
 const bcrypt = require('bcryptjs');
 
 const register = async (req, res) => {
@@ -117,7 +117,7 @@ const login = async (req, res) => {
   try {
     console.log('Login attempt for email:', email);
     
-    // Add database connection check
+    const db = getDb();
     if (!db) {
       console.error('Database connection not initialized');
       return res.status(500).json({ message: 'Database connection error' });
@@ -125,7 +125,6 @@ const login = async (req, res) => {
 
     // Input validation
     if (!email || !password) {
-      console.log('Missing credentials');
       return res.status(400).json({ message: 'Please provide email and password' });
     }
 
