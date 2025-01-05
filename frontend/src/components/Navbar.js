@@ -34,16 +34,16 @@ function Navbar() {
         <div className="flex justify-between h-16">
           {/* Left side - Logo and Desktop Navigation */}
           <div className="flex items-center">
-            <Link to="/dashboard" className="flex-shrink-0 flex items-center">
-              <img
-                src="/favicon_confluence.png"
-                alt="Logo"
-                className="h-8 w-auto"
-              />
-            </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:ml-8 md:flex md:items-center md:space-x-1">
+          <Link to="/dashboard" className="flex-shrink-0 hidden md:flex items-center">
+    <img
+      src="/favicon_confluence.png"
+      alt="Logo"
+      className="h-8 w-auto"
+    />
+  </Link>
+  
+  {/* Desktop Navigation */}
+  <div className="hidden md:ml-8 md:flex md:items-center md:space-x-1">
               <Link to="/dashboard" className={getLinkClasses('/dashboard')}>
                 Dashboard
               </Link>
