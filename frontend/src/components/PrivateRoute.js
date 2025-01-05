@@ -1,15 +1,23 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-function PrivateRoute({ children }) {
+const PrivateRoute = ({ children, requireAdmin, requireSuperAdmin }) => {
   const { user } = useAuth();
-  
+  const location = useLocation();
+
   if (!user) {
-    // Redirect to login if not authenticated
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (requireAdmin && !(user.role === 'admin' || user.role === 'superadmin')) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (requireSuperAdmin && user.role !== 'superadmin') {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
-}
+};
 
 export default PrivateRoute; 

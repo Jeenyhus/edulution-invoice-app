@@ -8,6 +8,13 @@ function Navbar() {
   const location = useLocation();
   const { user, logout } = useAuth();
 
+  // Debug log to check user object
+  console.log('Current user:', user);
+  
+  // Check if user has admin privileges
+  const isAdminUser = user?.role === 'admin' || user?.role === 'superadmin';
+  console.log('Is admin user:', isAdminUser);
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -19,36 +26,27 @@ function Navbar() {
 
   const getLinkClasses = (path) => {
     const isActive = location.pathname === path;
-    return `relative px-3 py-2 text-sm font-medium transition-colors
-      ${isActive 
-        ? 'text-primary-DEFAULT dark:text-primary-light' 
+    return `px-3 py-2 text-sm font-medium ${
+      isActive
+        ? 'text-gray-900 dark:text-white'
         : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-      }
-      ${isActive ? 'after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary-DEFAULT dark:after:bg-primary-light' : ''}
-    `;
+    }`;
   };
-
-  // Check if user has admin privileges
-  const isAdminUser = user?.role === 'admin' || user?.role === 'superadmin';
 
   return (
     <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Left side - Logo */}
-          <div className="hidden md:flex flex-shrink-0 items-center">
+          <div className="flex-shrink-0 flex items-center">
             <Link to="/dashboard">
-              <img
-                src="/favicon_confluence.png"
-                alt="Logo"
-                className="h-8 w-auto"
-              />
+              <img src="/favicon_confluence.png" alt="Logo" className="h-8 w-auto" />
             </Link>
           </div>
 
           {/* Center - Desktop Navigation */}
           <div className="hidden md:flex md:items-center md:justify-center flex-1 px-8">
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-4">
               <Link to="/dashboard" className={getLinkClasses('/dashboard')}>
                 Dashboard
               </Link>
@@ -82,11 +80,6 @@ function Navbar() {
           {/* Right side - User Menu */}
           <div className="hidden md:flex md:items-center">
             <div className="flex items-center space-x-4">
-              {user && (
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  {user.role === 'superadmin' ? '👑 ' : ''}{user.name}
-                </span>
-              )}
               <Link
                 to="/profile"
                 className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"

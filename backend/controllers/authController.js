@@ -32,18 +32,25 @@ const register = async (req, res) => {
       });
     }
 
+    // Set role based on email
+    let role = 'user';
+    if (email === 'dmweemba@edulution.org') {
+      role = 'superadmin';
+    }
+
     // Continue with user creation using the parsed hourly rate
     const userData = {
       name,
       email,
       password,
-      hourlyRate: parsedHourlyRate, // Store as number
+      hourlyRate: parsedHourlyRate,
       career,
       bankName,
       branchCode,
       accountNumber,
       address,
-      phoneNumber
+      phoneNumber,
+      role
     };
 
     // Check if user already exists
@@ -82,7 +89,7 @@ const register = async (req, res) => {
         accountNumber,
         address,
         phoneNumber,
-        'user'
+        role
       ], function(err) {
         if (err) {
           console.error('Error creating user:', err);
@@ -94,7 +101,7 @@ const register = async (req, res) => {
           { 
             id: this.lastID, 
             email, 
-            role: 'user',
+            role,
             career // Include career in token for easy access
           },
           process.env.JWT_SECRET,
@@ -110,7 +117,7 @@ const register = async (req, res) => {
             email,
             hourlyRate,
             career,
-            role: 'user'
+            role
           }
         });
       });
@@ -151,9 +158,13 @@ const login = async (req, res) => {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
-      // Generate JWT token
+      // Generate JWT token with role
       const token = jwt.sign(
-        { id: user.id, email: user.email, role: user.role },
+        { 
+          id: user.id, 
+          email: user.email,
+          role: user.role
+        },
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
       );
