@@ -60,8 +60,11 @@ const User = {
         branchCode,
         accountNumber,
         address,
-        phoneNumber
+        phoneNumber,
+        role
       } = userData;
+
+      console.log('Updating user in database:', { id, userData }); // Debug log
 
       db.run(`
         UPDATE users 
@@ -73,14 +76,16 @@ const User = {
             branchCode = ?,
             accountNumber = ?,
             address = ?,
-            phoneNumber = ?
+            phoneNumber = ?,
+            role = ?
         WHERE id = ?`,
-        [name, email, hourlyRate, career, bankName, branchCode, accountNumber, address, phoneNumber, id],
+        [name, email, hourlyRate, career, bankName, branchCode, accountNumber, address, phoneNumber, role, id],
         function(err) {
           if (err) {
-            console.error('Error updating user:', err);
+            console.error('Database error:', err); // Debug log
             reject(err);
           } else {
+            console.log('Database update successful:', this.changes); // Debug log
             resolve(this.changes);
           }
         }

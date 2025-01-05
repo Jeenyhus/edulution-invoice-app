@@ -36,9 +36,28 @@ export const taskService = {
 
 // User service
 export const userService = {
-  getUsers: () => api.get('/users'),
+  getUsers: async () => {
+    const response = await axios.get(`/api/users`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response;
+  },
   createUser: (userData) => api.post('/users', userData),
-  updateUser: (id, userData) => api.put(`/users/${id}`, userData),
+  updateUser: async (userId, userData) => {
+    try {
+      const response = await axios.put(`/api/users/${userId}`, userData, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      return response;
+    } catch (error) {
+      console.error('API Error:', error.response || error);
+      throw error;
+    }
+  },
   getProfile: () => api.get('/users/profile'),
   updateProfile: (profileData) => api.put('/users/profile', profileData)
 };
