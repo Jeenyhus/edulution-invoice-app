@@ -14,7 +14,8 @@ function Register() {
     accountNumber: '',
     address: '',
     career: '',  // This will be used as category alias
-    phoneNumber: ''
+    phoneNumber: '',
+    passwordConfirm: ''
   });
   const [errors, setErrors] = useState({
     name: '',
@@ -26,7 +27,8 @@ function Register() {
     accountNumber: '',
     address: '',
     career: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    passwordConfirm: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -108,6 +110,15 @@ function Register() {
       return;
     }
 
+    // Validate password confirmation
+    if (formData.password !== formData.passwordConfirm) {
+      setErrors(prev => ({
+        ...prev,
+        passwordConfirm: "Passwords do not match"
+      }));
+      return;
+    }
+
     setLoading(true);
     try {
       await register(formData);
@@ -144,7 +155,7 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       {showSuccess && (
         <div className="fixed top-4 right-4 bg-green-50 p-4 rounded-md shadow-lg z-50">
           <div className="flex">
@@ -163,15 +174,15 @@ function Register() {
       )}
 
       {error && (
-        <div className="fixed top-4 right-4 bg-red-50 p-4 rounded-md shadow-lg z-50">
+        <div className="fixed top-4 right-4 bg-red-50 dark:bg-red-900/30 p-4 rounded-md shadow-lg z-50">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <svg className="h-5 w-5 text-red-400 dark:text-red-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-red-800">
+              <p className="text-sm font-medium text-red-800 dark:text-red-200">
                 {error}
               </p>
             </div>
@@ -179,217 +190,272 @@ function Register() {
         </div>
       )}
 
-      <div className="max-w-4xl w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">
+      <div className="max-w-4xl w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
         <div className="flex flex-col items-center">
           <img
             src='/favicon_confluence.png'
             alt="Logo"
             className="h-12 mb-4"
           />
-          <h2 className="text-3xl font-light text-black">
+          <h2 className="text-3xl font-light text-gray-900 dark:text-white">
             Create Account
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Join us today
           </p>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="flex flex-col md:flex-row md:space-x-8 space-y-6 md:space-y-0">
-            {/* Left Column */}
-            <div className="flex-1 space-y-4">
-              <div className="flex flex-col">
-                <label htmlFor="name" className="text-sm font-medium text-gray-700">
-                  Full Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  className={`mt-1 px-3 py-2 border ${
-                    errors.name ? 'border-red-500' : 'border-gray-300'
-                  } rounded-md focus:ring-1 focus:ring-[#0072cd] focus:border-[#0072cd]`}
-                  value={formData.name}
-                  onChange={handleChange}
-                />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                )}
-              </div>
+        <form onSubmit={handleSubmit} className="mt-8 space-y-8">
+          {/* Personal Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                Personal Information
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border ${
+                      errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    } rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
+                    required
+                  />
+                  {errors.name && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
+                  )}
+                </div>
 
-              <div className="flex flex-col">
-                <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  className={`mt-1 px-3 py-2 border ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
-                  } rounded-md focus:ring-1 focus:ring-black focus:border-black`}
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                )}
-              </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border ${
+                      errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    } rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
+                    required
+                  />
+                  {errors.email && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+                  )}
+                </div>
 
-              <div className="flex flex-col">
-                <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  className={`mt-1 px-3 py-2 border ${
-                    errors.password ? 'border-red-500' : 'border-gray-300'
-                  } rounded-md focus:ring-1 focus:ring-black focus:border-black`}
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-                )}
-              </div>
+                <div className="flex flex-col md:flex-row md:space-x-4">
+                  <div className="flex-1 mb-4 md:mb-0">
+                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      id="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className={`w-full px-3 py-2 border ${
+                        errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      } rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
+                      required
+                    />
+                    {errors.password && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
+                    )}
+                  </div>
 
-              <div className="flex flex-col">
-                <label htmlFor="career" className="text-sm font-medium text-gray-700">Career</label>
-                <input
-                  type="text"
-                  name="career"
-                  value={formData.career}
-                  onChange={handleChange}
-                  className={`mt-1 px-3 py-2 border ${
-                    errors.career ? 'border-red-500' : 'border-gray-300'
-                  } rounded-md focus:ring-1 focus:ring-black focus:border-black`}
-                  required
-                />
-                {errors.career && (
-                  <p className="mt-1 text-sm text-red-600">{errors.career}</p>
-                )}
-              </div>
-
-              <div className="flex flex-col">
-                <label htmlFor="hourlyRate" className="text-sm font-medium text-gray-700">
-                  Hourly Rate (ZMW)
-                </label>
-                <input
-                  type="number"
-                  name="hourlyRate"
-                  id="hourlyRate"
-                  value={formData.hourlyRate}
-                  onChange={handleChange}
-                  placeholder="Enter rate in ZMW"
-                  className={`mt-1 px-3 py-2 border ${
-                    errors.hourlyRate ? 'border-red-500' : 'border-gray-300'
-                  } rounded-md focus:ring-1 focus:ring-[#0072cd] focus:border-[#0072cd]`}
-                  required
-                />
-                {errors.hourlyRate && (
-                  <p className="mt-1 text-sm text-red-600">{errors.hourlyRate}</p>
-                )}
+                  <div className="flex-1">
+                    <label htmlFor="passwordConfirm" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Confirm Password
+                    </label>
+                    <input
+                      type="password"
+                      name="passwordConfirm"
+                      id="passwordConfirm"
+                      value={formData.passwordConfirm}
+                      onChange={handleChange}
+                      className={`w-full px-3 py-2 border ${
+                        errors.passwordConfirm ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      } rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
+                      required
+                    />
+                    {errors.passwordConfirm && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.passwordConfirm}</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Right Column */}
-            <div className="flex-1 space-y-4">
-              <div className="flex flex-col">
-                <label htmlFor="bankName" className="text-sm font-medium text-gray-700">Bank Name</label>
+            {/* Professional Information */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                Professional Information
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="career" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Career
+                  </label>
+                  <input
+                    type="text"
+                    name="career"
+                    value={formData.career}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border ${
+                      errors.career ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    } rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
+                    required
+                  />
+                  {errors.career && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.career}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="hourlyRate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Hourly Rate (ZMW)
+                  </label>
+                  <input
+                    type="number"
+                    name="hourlyRate"
+                    value={formData.hourlyRate}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border ${
+                      errors.hourlyRate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    } rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
+                    required
+                  />
+                  {errors.hourlyRate && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.hourlyRate}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Banking Information */}
+          <div className="space-y-6">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+              Banking Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label htmlFor="bankName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Bank Name
+                </label>
                 <input
                   type="text"
                   name="bankName"
                   value={formData.bankName}
                   onChange={handleChange}
-                  className={`mt-1 px-3 py-2 border ${
-                    errors.bankName ? 'border-red-500' : 'border-gray-300'
-                  } rounded-md focus:ring-1 focus:ring-black focus:border-black`}
+                  className={`w-full px-3 py-2 border ${
+                    errors.bankName ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  } rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
                   required
                 />
                 {errors.bankName && (
-                  <p className="mt-1 text-sm text-red-600">{errors.bankName}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.bankName}</p>
                 )}
               </div>
 
-              <div className="flex flex-col">
-                <label htmlFor="branchCode" className="text-sm font-medium text-gray-700">Branch Code</label>
+              <div>
+                <label htmlFor="branchCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Branch Code
+                </label>
                 <input
                   type="text"
                   name="branchCode"
                   value={formData.branchCode}
                   onChange={handleChange}
-                  className={`mt-1 px-3 py-2 border ${
-                    errors.branchCode ? 'border-red-500' : 'border-gray-300'
-                  } rounded-md focus:ring-1 focus:ring-black focus:border-black`}
+                  className={`w-full px-3 py-2 border ${
+                    errors.branchCode ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  } rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
                   required
                 />
                 {errors.branchCode && (
-                  <p className="mt-1 text-sm text-red-600">{errors.branchCode}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.branchCode}</p>
                 )}
               </div>
 
-              <div className="flex flex-col">
-                <label htmlFor="accountNumber" className="text-sm font-medium text-gray-700">Account Number</label>
+              <div>
+                <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Account Number
+                </label>
                 <input
                   type="text"
                   name="accountNumber"
                   value={formData.accountNumber}
                   onChange={handleChange}
-                  className={`mt-1 px-3 py-2 border ${
-                    errors.accountNumber ? 'border-red-500' : 'border-gray-300'
-                  } rounded-md focus:ring-1 focus:ring-black focus:border-black`}
+                  className={`w-full px-3 py-2 border ${
+                    errors.accountNumber ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  } rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
                   required
                 />
                 {errors.accountNumber && (
-                  <p className="mt-1 text-sm text-red-600">{errors.accountNumber}</p>
-                )}
-              </div>
-
-              <div className="flex flex-col">
-                <label htmlFor="address" className="text-sm font-medium text-gray-700">Address</label>
-                <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  rows={3}
-                  className={`mt-1 px-3 py-2 border ${
-                    errors.address ? 'border-red-500' : 'border-gray-300'
-                  } rounded-md focus:ring-1 focus:ring-black focus:border-black`}
-                  required
-                />
-                {errors.address && (
-                  <p className="mt-1 text-sm text-red-600">{errors.address}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.accountNumber}</p>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="mt-8 flex flex-col items-center">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full md:w-1/2 py-2 px-4 border border-transparent rounded-md text-white bg-[#0072cd] hover:bg-[#0066b8] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0072cd] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <svg className="animate-spin h-5 w-5 mx-auto text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              ) : (
-                'Create Account'
+          {/* Contact Information */}
+          <div className="space-y-6">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+              Contact Information
+            </h3>
+            <div>
+              <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Address
+              </label>
+              <textarea
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                rows={3}
+                className={`w-full px-3 py-2 border ${
+                  errors.address ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                } rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
+                required
+              />
+              {errors.address && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.address}</p>
               )}
-            </button>
-            
-            <div className="mt-4 flex items-center space-x-1 text-sm">
-              <span className="text-gray-500">Already have an account?</span>
-              <Link to="/login" className="font-medium text-[#0072cd] hover:text-[#0066b8]">
-                Sign in
-              </Link>
+            </div>
+          </div>
+
+          {/* Submit Button and Sign In Link */}
+          <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col items-center space-y-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full md:w-1/2 py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-[#0072cd] hover:bg-[#0066b8] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0072cd] transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:focus:ring-offset-gray-800"
+              >
+                {loading ? (
+                  <svg className="animate-spin h-5 w-5 mx-auto text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  'Create Account'
+                )}
+              </button>
+              
+              <div className="flex items-center space-x-1 text-sm">
+                <span className="text-gray-500 dark:text-gray-400">Already have an account?</span>
+                <Link to="/login" className="font-medium text-[#0072cd] hover:text-[#0066b8] dark:text-[#3b82f6] dark:hover:text-[#60a5fa] transition-colors">
+                  Sign in
+                </Link>
+              </div>
             </div>
           </div>
         </form>

@@ -104,7 +104,7 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       {showLogoutSuccess && (
         <div className="fixed top-4 right-4 bg-green-50 p-4 rounded-md shadow-lg">
           <div className="flex">
@@ -139,24 +139,24 @@ function Login() {
         </div>
       )}
       
-      <div className="max-w-md w-full space-y-6 p-8 bg-white rounded-lg shadow-lg">
+      <div className="max-w-md w-full space-y-6 p-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
         <div>
           <img
             src="/favicon_confluence.png"
             alt="Logo"
             className="h-12 mx-auto mb-6"
           />
-          <h2 className="text-center text-3xl font-light text-black">
+          <h2 className="text-center text-3xl font-light text-gray-900 dark:text-white">
             Welcome Back
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             Sign in to continue
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Email address
               </label>
               <input
@@ -165,19 +165,19 @@ function Login() {
                 type="email"
                 required
                 className={`mt-1 block w-full px-4 py-3 border ${
-                  errors.email ? 'border-red-500' : 'border-gray-200'
-                } rounded-lg focus:ring-[#0072cd] focus:border-[#0072cd] transition-colors text-sm`}
+                  errors.email ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
+                } rounded-lg focus:ring-[#0072cd] focus:border-[#0072cd] transition-colors text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
                 value={credentials.email}
                 onChange={handleChange}
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                   {errors.email}
                 </p>
               )}
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Password
               </label>
               <input
@@ -186,13 +186,13 @@ function Login() {
                 type="password"
                 required
                 className={`mt-1 block w-full px-4 py-3 border ${
-                  errors.password ? 'border-red-500' : 'border-gray-200'
-                } rounded-lg focus:ring-[#0072cd] focus:border-[#0072cd] transition-colors text-sm`}
+                  errors.password ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
+                } rounded-lg focus:ring-[#0072cd] focus:border-[#0072cd] transition-colors text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
                 value={credentials.password}
                 onChange={handleChange}
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                   {errors.password}
                 </p>
               )}
@@ -200,10 +200,10 @@ function Login() {
           </div>
 
           {error && (
-            <div className="rounded-md bg-red-50 p-4">
+            <div className="rounded-md bg-red-50 dark:bg-red-900/30 p-4">
               <div className="flex">
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">{error}</h3>
+                  <h3 className="text-sm font-medium text-red-800 dark:text-red-200">{error}</h3>
                 </div>
               </div>
             </div>
@@ -229,8 +229,8 @@ function Login() {
           </div>
         </form>
         <div className="text-sm text-center">
-          <span className="text-gray-500">Don't have an account? </span>
-          <Link to="/register" className="font-medium text-[#0072cd] hover:text-[#005ba3] transition-colors">
+          <span className="text-gray-500 dark:text-gray-400">Don't have an account? </span>
+          <Link to="/register" className="font-medium text-[#0072cd] hover:text-[#005ba3] dark:text-[#3b82f6] dark:hover:text-[#60a5fa] transition-colors">
             Register here
           </Link>
         </div>
