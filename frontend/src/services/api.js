@@ -98,4 +98,21 @@ export const invoiceService = {
     })
 };
 
+// Add to your existing userService or create a new reportService
+export const reportService = {
+  getReportData: async (timeRange = 'month') => {
+    try {
+      const response = await axios.get(`${API_URL}/reports?timeRange=${timeRange}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('API Error:', error.response || error);
+      throw error;
+    }
+  }
+};
+
 export default api;
