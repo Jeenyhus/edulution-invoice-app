@@ -17,6 +17,13 @@ const register = async (req, res) => {
       phoneNumber
     } = req.body;
 
+    // Add email domain validation
+    if (!email.endsWith('@edulution.org')) {
+      return res.status(400).json({
+        error: 'Registration is only allowed for @edulution.org email addresses'
+      });
+    }
+
     // Validate hourly rate
     const parsedHourlyRate = parseFloat(hourlyRate);
     if (isNaN(parsedHourlyRate) || parsedHourlyRate <= 0) {
@@ -117,9 +124,16 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
-
   try {
+    const { email, password } = req.body;
+
+    // Add email domain validation
+    if (!email.endsWith('@edulution.org')) {
+      return res.status(401).json({
+        error: 'Access restricted to @edulution.org email addresses only'
+      });
+    }
+
     // Find user
     db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
       if (err) {
@@ -155,7 +169,7 @@ const login = async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ error: 'Server error' });
   }
 };
 

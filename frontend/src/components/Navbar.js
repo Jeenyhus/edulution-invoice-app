@@ -28,6 +28,9 @@ function Navbar() {
     `;
   };
 
+  // Check if user has admin privileges
+  const isAdminUser = user?.role === 'admin' || user?.role === 'superadmin';
+
   return (
     <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -55,9 +58,22 @@ function Navbar() {
               <Link to="/invoices" className={getLinkClasses('/invoices')}>
                 Invoices
               </Link>
-              {user?.role === 'admin' && (
-                <Link to="/users" className={getLinkClasses('/users')}>
-                  Users
+              {isAdminUser && (
+                <>
+                  <Link to="/users" className={getLinkClasses('/users')}>
+                    Users
+                  </Link>
+                  <Link to="/reports" className={getLinkClasses('/reports')}>
+                    Reports
+                  </Link>
+                  <Link to="/settings" className={getLinkClasses('/settings')}>
+                    Settings
+                  </Link>
+                </>
+              )}
+              {user?.role === 'superadmin' && (
+                <Link to="/system" className={getLinkClasses('/system')}>
+                  System
                 </Link>
               )}
             </div>
@@ -66,6 +82,11 @@ function Navbar() {
           {/* Right side - User Menu */}
           <div className="hidden md:flex md:items-center">
             <div className="flex items-center space-x-4">
+              {user && (
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  {user.role === 'superadmin' ? '👑 ' : ''}{user.name}
+                </span>
+              )}
               <Link
                 to="/profile"
                 className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
@@ -128,13 +149,38 @@ function Navbar() {
             >
               Invoices
             </Link>
-            {user?.role === 'admin' && (
+            {isAdminUser && (
+              <>
+                <Link
+                  to="/users"
+                  className={`block ${getLinkClasses('/users')}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Users
+                </Link>
+                <Link
+                  to="/reports"
+                  className={`block ${getLinkClasses('/reports')}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Reports
+                </Link>
+                <Link
+                  to="/settings"
+                  className={`block ${getLinkClasses('/settings')}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Settings
+                </Link>
+              </>
+            )}
+            {user?.role === 'superadmin' && (
               <Link
-                to="/users"
-                className={`block ${getLinkClasses('/users')}`}
+                to="/system"
+                className={`block ${getLinkClasses('/system')}`}
                 onClick={() => setIsMenuOpen(false)}
               >
-                Users
+                System
               </Link>
             )}
           </div>
