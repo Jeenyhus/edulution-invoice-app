@@ -8,7 +8,8 @@ function ProfileForm({ onSubmit, initialData, onCancel }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const hourlyRate = parseFloat(formData.hourlyRate);
+    // Convert empty string to 0 before parsing
+    const hourlyRate = parseFloat(formData.hourlyRate || '0');
     
     // Validate hourly rate
     if (isNaN(hourlyRate) || hourlyRate <= 0) {
@@ -18,7 +19,7 @@ function ProfileForm({ onSubmit, initialData, onCancel }) {
 
     const updatedData = {
       ...formData,
-      hourlyRate: hourlyRate
+      hourlyRate: hourlyRate // Store as number, not string
     };
 
     try {
@@ -62,11 +63,13 @@ function ProfileForm({ onSubmit, initialData, onCancel }) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hourly Rate (ZMW)</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Hourly Rate (ZMW)
+        </label>
         <input
           type="number"
-          step="0.01"
           min="0"
+          step="0.01"
           value={formData.hourlyRate}
           onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-black dark:focus:border-gray-300 focus:ring-black dark:focus:ring-gray-300"

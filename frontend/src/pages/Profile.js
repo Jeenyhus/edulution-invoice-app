@@ -3,6 +3,7 @@ import { userService, taskService } from '../services/api';
 import ProfileForm from '../components/ProfileForm';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { calculateEarnings } from '../utils/calculations';
 
 function Profile() {
   const [profile, setProfile] = useState(null);
@@ -36,7 +37,7 @@ function Profile() {
         return acc + (parseFloat(task.hoursWorked) || 0);
       }, 0);
       
-      const monthlyEarnings = monthlyHours * (profile.hourlyRate || 0);
+      const monthlyEarnings = calculateEarnings(monthlyHours, profile.hourlyRate);
 
       setProfile(profile);
       setFormData(profile);
@@ -112,6 +113,48 @@ function Profile() {
       setIsEditing(false);
       toast.success('Profile updated successfully');
     } catch (error) {
+      toast.error('Failed to update profile');
+    }
+  };
+
+  const calculateStats = (tasks, profile) => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    const monthlyTasks = tasks.filter(task => new Date(task.date) >= startOfMonth);
+    const monthlyHours = monthlyTasks.reduce((acc, task) => {
+      return acc + (parseFloat(task.hoursWorked) || 0);
+    }, 0);
+    
+    return {
+      monthlyHours: Math.round(monthlyHours * 100) / 100,
+      monthlyEarnings: calculateEarnings(monthlyHours, profile.hourlyRate || 0)
+    };
+  };
+
+  const handleProfileUpdate = async (formData) => {
+    try {
+      // Validate hourly rate
+      const hourlyRate = parseFloat(formData.hourlyRate);
+      if (isNaN(hourlyRate) || hourlyRate <= 0) {
+        toast.error('Please enter a valid hourly rate');
+        return;
+      }
+
+      const response = await userService.updateProfile({
+        ...formData,
+        hourlyRate: hourlyRate
+      });
+
+      if (response.data) {
+        setProfile(response.data);
+        setIsEditing(false);
+        toast.success('Profile updated successfully');
+        // Trigger a refresh of dashboard data
+        window.dispatchEvent(new Event('profileUpdated'));
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
       toast.error('Failed to update profile');
     }
   };

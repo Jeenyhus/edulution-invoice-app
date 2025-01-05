@@ -65,11 +65,12 @@ function Register() {
     }
 
     // Hourly rate validation
+    const hourlyRate = parseFloat(formData.hourlyRate);
     if (!formData.hourlyRate) {
       newErrors.hourlyRate = 'Hourly rate is required';
       isValid = false;
-    } else if (isNaN(formData.hourlyRate) || parseFloat(formData.hourlyRate) < 0) {
-      newErrors.hourlyRate = 'Please enter a valid hourly rate';
+    } else if (isNaN(hourlyRate) || hourlyRate <= 0) {
+      newErrors.hourlyRate = 'Please enter a valid hourly rate greater than 0';
       isValid = false;
     }
 
@@ -104,36 +105,20 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
-    // Validate password confirmation
-    if (formData.password !== formData.passwordConfirm) {
-      setErrors(prev => ({
-        ...prev,
-        passwordConfirm: "Passwords do not match"
-      }));
-      return;
-    }
-
-    setLoading(true);
     try {
-      await register(formData);
+      setLoading(true);
+      // Convert hourly rate to number before sending
+      const submitData = {
+        ...formData,
+        hourlyRate: parseFloat(formData.hourlyRate)
+      };
+      await register(submitData);
       setShowSuccess(true);
-      // Show success message for 3 seconds before redirecting
-      setTimeout(() => {
-        navigate('/login', { state: { showRegistrationSuccess: true } });
-      }, 3000);
     } catch (error) {
-      console.error('Registration error:', error);
-      const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
-      setError(errorMessage);
-      
-      // Scroll to error message if it's outside viewport
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      console.log('Registration error:', error);
+      setError('Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }

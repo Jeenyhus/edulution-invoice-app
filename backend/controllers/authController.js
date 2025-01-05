@@ -3,20 +3,42 @@ const { db } = require('../config/db');
 const bcrypt = require('bcryptjs');
 
 const register = async (req, res) => {
-  const { 
-    name, 
-    email, 
-    password, 
-    hourlyRate,
-    career,
-    bankName,
-    branchCode,
-    accountNumber,
-    address,
-    phoneNumber
-  } = req.body;
-
   try {
+    const { 
+      name, 
+      email, 
+      password,
+      hourlyRate,
+      career,
+      bankName,
+      branchCode,
+      accountNumber,
+      address,
+      phoneNumber
+    } = req.body;
+
+    // Validate hourly rate
+    const parsedHourlyRate = parseFloat(hourlyRate);
+    if (isNaN(parsedHourlyRate) || parsedHourlyRate <= 0) {
+      return res.status(400).json({ 
+        error: 'Invalid hourly rate' 
+      });
+    }
+
+    // Continue with user creation using the parsed hourly rate
+    const userData = {
+      name,
+      email,
+      password,
+      hourlyRate: parsedHourlyRate, // Store as number
+      career,
+      bankName,
+      branchCode,
+      accountNumber,
+      address,
+      phoneNumber
+    };
+
     // Check if user already exists
     db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
       if (err) {
@@ -88,7 +110,9 @@ const register = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      error: 'Failed to register user' 
+    });
   }
 };
 

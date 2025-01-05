@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import TaskForm from '../components/TaskForm';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { calculateEarnings } from '../utils/calculations';
 
 function Dashboard() {
   const [recentTasks, setRecentTasks] = useState([]);
@@ -26,6 +27,18 @@ function Dashboard() {
   });
 
   const calculateDashboardStats = useCallback((tasks, hourlyRate) => {
+    // Convert empty string or invalid hourly rate to 0
+    const validHourlyRate = parseFloat(hourlyRate) || 0;
+    if (validHourlyRate <= 0) {
+      toast.error('Please set a valid hourly rate in your profile');
+      return {
+        totalHours: 0,
+        totalEarnings: 0,
+        monthlyHours: 0,
+        monthlyEarnings: 0
+      };
+    }
+
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     
@@ -36,9 +49,9 @@ function Dashboard() {
     
     return {
       totalHours: Math.round(totalHours * 100) / 100,
-      totalEarnings: Math.round(totalHours * hourlyRate * 100) / 100,
+      totalEarnings: calculateEarnings(totalHours, validHourlyRate),
       monthlyHours: Math.round(monthlyHours * 100) / 100,
-      monthlyEarnings: Math.round(monthlyHours * hourlyRate * 100) / 100
+      monthlyEarnings: calculateEarnings(monthlyHours, validHourlyRate)
     };
   }, []);
 
@@ -52,10 +65,15 @@ function Dashboard() {
       const tasks = tasksResponse.data;
       const profile = profileResponse.data;
       
+      console.log('Profile data:', profile);
+      console.log('Tasks data:', tasks);
+      console.log('Hourly rate:', profile.hourlyRate);
+      
       setUserData(profile);
       
       // Calculate dashboard stats
       const stats = calculateDashboardStats(tasks, profile.hourlyRate);
+      console.log('Calculated stats:', stats);
       setDashboardStats(stats);
       setTotalHours(stats.totalHours);
       
@@ -95,6 +113,17 @@ function Dashboard() {
       return () => clearTimeout(timer);
     }
   }, [location]);
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      fetchData();
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    return () => {
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
+    };
+  }, [fetchData]);
 
   // Get time of day for greeting
   const getTimeBasedGreeting = () => {
@@ -227,7 +256,7 @@ function Dashboard() {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Monthly Earnings</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">ZMW {dashboardStats.monthlyEarnings}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">ZMW {dashboardStats.monthlyEarnings.toFixed(2)}</p>
               </div>
             </div>
           </div>
