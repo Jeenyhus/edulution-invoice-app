@@ -36,13 +36,20 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post('/api/auth/login', credentials);
       const { token, user } = response.data;
       
+      if (!token || !user) {
+        throw new Error('Invalid server response');
+      }
+      
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
       
       return response.data;
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('Login failed:', {
+        message: error.response?.data?.message || error.message,
+        status: error.response?.status
+      });
       throw error;
     }
   };
@@ -80,4 +87,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};

@@ -1,48 +1,28 @@
 import axios from 'axios';
 
-const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
-
-console.log('API Base URL:', baseURL); // Debug log
-
 const api = axios.create({
-  baseURL,
-  headers: {
-    'Content-Type': 'application/json'
-  },
+  baseURL: process.env.REACT_APP_API_URL || 'https://edulution-invoice-backend.onrender.com/api',
+  timeout: 10000,
   withCredentials: true
 });
 
-// Add request interceptor for auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    console.log('API Request:', config.method, config.url); // Debug log
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+  return config;
+});
 
-// Add response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  response => response,
+  error => {
     console.error('API Error:', {
       url: error.config?.url,
       method: error.config?.method,
       status: error.response?.status,
       data: error.response?.data
     });
-    if (error.response?.status === 401) {
-      // Clear local storage and redirect to login
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
     return Promise.reject(error);
   }
 );
