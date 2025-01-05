@@ -97,7 +97,11 @@ function Login() {
       await login(credentials.email, credentials.password);
       navigate('/dashboard', { state: { showSuccessMessage: true } });
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to login');
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          'Failed to login. Please try again.';
+      setError(errorMessage);
+      console.error('Login error:', error);
     } finally {
       setLoading(false);
     }
@@ -239,4 +243,4 @@ function Login() {
   );
 }
 
-export default Login; 
+export default Login;

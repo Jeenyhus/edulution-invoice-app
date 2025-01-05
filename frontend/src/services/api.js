@@ -50,7 +50,19 @@ api.interceptors.response.use(
 // Auth service
 export const authService = {
   register: (userData) => api.post('/api/auth/register', userData),
-  login: (credentials) => api.post('/api/auth/login', credentials),
+  login: async (credentials) => {
+    try {
+      const response = await api.post('/api/auth/login', credentials);
+      return response.data;
+    } catch (error) {
+      console.error('Login API Error:', {
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        error: error.response?.data?.error
+      });
+      throw error;
+    }
+  },
   getProfile: () => api.get('/api/users/profile')
 };
 

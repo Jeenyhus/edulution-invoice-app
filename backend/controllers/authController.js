@@ -116,7 +116,12 @@ const login = async (req, res) => {
 
   try {
     console.log('Login attempt for email:', email);
-    console.log('Database path:', dbPath);
+    
+    // Add database connection check
+    if (!db) {
+      console.error('Database connection not initialized');
+      return res.status(500).json({ message: 'Database connection error' });
+    }
 
     // Input validation
     if (!email || !password) {
@@ -206,14 +211,11 @@ const login = async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ 
-      message: 'Server error during login',
-      error: error.message 
-    });
+    return res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
 module.exports = {
   register,
   login
-}; 
+};

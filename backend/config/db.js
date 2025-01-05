@@ -47,80 +47,99 @@ const initializeDb = () => {
   return new Promise((resolve, reject) => {
     console.log('Starting database initialization...');
     
-    // Enable foreign keys
-    db.run('PRAGMA foreign_keys = ON');
+    // Create data directory if it doesn't exist
+    const dataDir = path.join(__dirname, '..', 'data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
 
-    // Create users table
-    const createUsersTable = `
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        role TEXT DEFAULT 'user',
-        hourlyRate REAL DEFAULT 0,
-        career TEXT,
-        bankName TEXT,
-        branchCode TEXT,
-        accountNumber TEXT,
-        address TEXT,
-        phoneNumber TEXT,
-        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `;
+    const dbPath = path.join(dataDir, 'database.sqlite');
+    console.log('Database path:', dbPath);
 
-    db.run(createUsersTable, (err) => {
+    const database = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
       if (err) {
-        console.error('Error creating users table:', err);
+        console.error('Database connection error:', err);
         reject(err);
         return;
       }
+      console.log('Connected to SQLite database');
+      db = database;
 
-      // Verify users table exists and show schema
-      db.all("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'", [], (err, rows) => {
-        if (err) {
-          console.error('Error verifying table schema:', err);
-        } else {
-          console.log('Users table schema:', rows);
-        }
-      });
+      // Enable foreign keys
+      db.run('PRAGMA foreign_keys = ON');
 
-      // Create tasks table
-      const createTasksTable = `
-        CREATE TABLE IF NOT EXISTS tasks (
+      // Create users table
+      const createUsersTable = `
+        CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          description TEXT NOT NULL,
-          date TEXT NOT NULL,
-          shift TEXT NOT NULL,
-          startTime TEXT NOT NULL,
-          endTime TEXT NOT NULL,
-          hoursWorked REAL NOT NULL,
-          category TEXT NOT NULL,
-          userId INTEGER,
-          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (userId) REFERENCES users(id)
+          name TEXT NOT NULL,
+          email TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL,
+          role TEXT DEFAULT 'user',
+          hourlyRate REAL DEFAULT 0,
+          career TEXT,
+          bankName TEXT,
+          branchCode TEXT,
+          accountNumber TEXT,
+          address TEXT,
+          phoneNumber TEXT,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `;
 
-      db.run(createTasksTable, (err) => {
+      db.run(createUsersTable, (err) => {
         if (err) {
-          console.error('Error creating tasks table:', err);
+          console.error('Error creating users table:', err);
           reject(err);
           return;
         }
 
-        console.log('Database tables initialized successfully');
-        
-        // Test database connection and tables
-        db.get("SELECT COUNT(*) as count FROM users", [], (err, row) => {
+        // Verify users table exists and show schema
+        db.all("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'", [], (err, rows) => {
           if (err) {
-            console.error('Error testing users table:', err);
+            console.error('Error verifying table schema:', err);
           } else {
-            console.log('Users in database:', row.count);
+            console.log('Users table schema:', rows);
           }
         });
 
-        resolve();
+        // Create tasks table
+        const createTasksTable = `
+          CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            description TEXT NOT NULL,
+            date TEXT NOT NULL,
+            shift TEXT NOT NULL,
+            startTime TEXT NOT NULL,
+            endTime TEXT NOT NULL,
+            hoursWorked REAL NOT NULL,
+            category TEXT NOT NULL,
+            userId INTEGER,
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (userId) REFERENCES users(id)
+          )
+        `;
+
+        db.run(createTasksTable, (err) => {
+          if (err) {
+            console.error('Error creating tasks table:', err);
+            reject(err);
+            return;
+          }
+
+          console.log('Database tables initialized successfully');
+          
+          // Test database connection and tables
+          db.get("SELECT COUNT(*) as count FROM users", [], (err, row) => {
+            if (err) {
+              console.error('Error testing users table:', err);
+            } else {
+              console.log('Users in database:', row.count);
+            }
+          });
+
+          resolve();
+        });
       });
     });
   });
