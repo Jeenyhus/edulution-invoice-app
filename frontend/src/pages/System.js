@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { departmentService } from '../services/api';
+import { departmentService } from '../services';
 
 function System() {
   const [departments, setDepartments] = useState([]);

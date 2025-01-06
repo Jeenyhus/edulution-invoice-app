@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { userService, taskService } from '../services/api';
+import { userService, taskService } from '../services';
 import ProfileForm from '../components/ProfileForm';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { calculateEarnings } from '../utils/calculations';
+import { useAuth } from '../contexts/AuthContext';
 
 function Profile() {
   const [profile, setProfile] = useState(null);

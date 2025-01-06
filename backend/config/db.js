@@ -22,6 +22,28 @@ const runMigrations = async () => {
           department_id INTEGER,
           FOREIGN KEY (department_id) REFERENCES departments(id)
         );
+
+        CREATE TABLE IF NOT EXISTS settings (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          companyName TEXT DEFAULT 'Edulution',
+          companyEmail TEXT DEFAULT 'info@edulution.org',
+          maxHoursPerDay INTEGER DEFAULT 8,
+          maxHoursPerWeek INTEGER DEFAULT 40,
+          overtimeMultiplier REAL DEFAULT 1.5,
+          allowDepartmentCreation INTEGER DEFAULT 1,
+          allowCareerCreation INTEGER DEFAULT 1,
+          defaultHourlyRate REAL DEFAULT 50.0,
+          allowUserRegistration INTEGER DEFAULT 1,
+          requireEmailVerification INTEGER DEFAULT 1,
+          allowTaskEditing INTEGER DEFAULT 1,
+          taskEditTimeLimit INTEGER DEFAULT 24,
+          requireTaskApproval INTEGER DEFAULT 1,
+          emailNotifications INTEGER DEFAULT 1,
+          taskReminders INTEGER DEFAULT 1,
+          approvalNotifications INTEGER DEFAULT 1
+        );
+
+        INSERT OR IGNORE INTO settings (id) VALUES (1);
       `, (err) => {
         if (err) reject(err);
         else resolve();
