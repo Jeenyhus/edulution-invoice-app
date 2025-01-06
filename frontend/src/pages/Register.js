@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 
 function Register() {
@@ -35,6 +36,33 @@ function Register() {
   const { register } = useAuth();
   const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
+  const [departments, setDepartments] = useState([]);
+  const [careers, setCareers] = useState([]);
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const response = await axios.get('/api/departments');
+        setDepartments(response.data);
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+      }
+    };
+    
+    fetchDepartments();
+  }, []);
+
+  const handleDepartmentChange = async (e) => {
+    const departmentId = e.target.value;
+    setFormData(prev => ({ ...prev, department_id: departmentId }));
+    
+    try {
+      const response = await axios.get(`/api/departments/${departmentId}/careers`);
+      setCareers(response.data);
+    } catch (error) {
+      console.error('Error fetching careers:', error);
+    }
+  };
 
   const validateForm = () => {
     let isValid = true;
@@ -300,22 +328,42 @@ function Register() {
               </h3>
               <div className="space-y-4">
                 <div>
+                  <label htmlFor="department" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Department
+                  </label>
+                  <select
+                    id="department"
+                    name="department"
+                    value={formData.department_id || ''}
+                    onChange={handleDepartmentChange}
+                    className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    required
+                  >
+                    <option value="">Select Department</option>
+                    {departments.map(dept => (
+                      <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label htmlFor="career" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Career
                   </label>
-                  <input
-                    type="text"
+                  <select
+                    id="career"
                     name="career"
-                    value={formData.career}
+                    value={formData.career || ''}
                     onChange={handleChange}
-                    className={`w-full px-3 py-2 border ${
-                      errors.career ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    } rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
+                    className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     required
-                  />
-                  {errors.career && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.career}</p>
-                  )}
+                    disabled={!formData.department_id}
+                  >
+                    <option value="">Select Career</option>
+                    {careers.map(career => (
+                      <option key={career.id} value={career.name}>{career.name}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>

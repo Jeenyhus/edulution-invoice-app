@@ -19,4 +19,15 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = { protect }; 
+const requireSuperAdmin = (req, res, next) => {
+  if (req.user && req.user.role === 'superadmin') {
+    next();
+  } else {
+    res.status(403).json({ error: 'Access denied. Requires superadmin role.' });
+  }
+};
+
+module.exports = {
+  protect,
+  requireSuperAdmin
+}; 

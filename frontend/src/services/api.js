@@ -98,4 +98,10 @@ export const invoiceService = {
     })
 };
 
+export const departmentService = {
+  getDepartments: () => api.get('/departments'),
+  addDepartment: (name) => api.post('/departments', { name }),
+  addCareer: (departmentId, name) => api.post(`/departments/${departmentId}/careers`, { name })
+};
+
 export default api;
