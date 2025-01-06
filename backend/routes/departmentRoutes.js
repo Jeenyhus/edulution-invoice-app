@@ -3,16 +3,12 @@ const router = express.Router();
 const { getDepartments, addDepartment, addCareer } = require('../controllers/departmentController');
 const { protect } = require('../middleware/authMiddleware');
 
-// All routes should be protected
-router.use(protect);
-
-// Get all departments
+// Public routes
 router.get('/', getDepartments);
 
-// Add new department
+// Protected routes below this middleware
+router.use(protect);
 router.post('/', addDepartment);
-
-// Add career to department
 router.post('/:departmentId/careers', addCareer);
 
 module.exports = router; 

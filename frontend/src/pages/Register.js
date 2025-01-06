@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import departmentService from '../services/departmentService';
 
 
 function Register() {
@@ -14,7 +14,9 @@ function Register() {
     branchCode: '',
     accountNumber: '',
     address: '',
-    career: '',  // This will be used as category alias
+    career: '',
+    career_id: null,
+    department_id: null,
     phoneNumber: '',
     passwordConfirm: ''
   });
@@ -42,8 +44,13 @@ function Register() {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const response = await axios.get('/api/departments');
+        const response = await departmentService.getDepartments();
         setDepartments(response.data);
+        
+        // If there are departments, set the careers for the first one
+        if (response.data.length > 0) {
+          setCareers(response.data[0].careers || []);
+        }
       } catch (error) {
         console.error('Error fetching departments:', error);
       }
@@ -52,16 +59,30 @@ function Register() {
     fetchDepartments();
   }, []);
 
-  const handleDepartmentChange = async (e) => {
-    const departmentId = e.target.value;
-    setFormData(prev => ({ ...prev, department_id: departmentId }));
+  const handleDepartmentChange = (e) => {
+    const deptId = e.target.value;
+    const selectedDept = departments.find(d => d.id === parseInt(deptId));
     
-    try {
-      const response = await axios.get(`/api/departments/${departmentId}/careers`);
-      setCareers(response.data);
-    } catch (error) {
-      console.error('Error fetching careers:', error);
-    }
+    setFormData(prev => ({
+      ...prev,
+      department_id: deptId,
+      career: '',  // Reset career when department changes
+      career_id: '' // Reset career_id when department changes
+    }));
+
+    // Update available careers for selected department
+    setCareers(selectedDept ? selectedDept.careers : []);
+  };
+
+  const handleCareerChange = (e) => {
+    const careerName = e.target.value;
+    const selectedCareer = careers.find(c => c.name === careerName);
+    
+    setFormData(prev => ({
+      ...prev,
+      career: careerName,
+      career_id: selectedCareer ? selectedCareer.id : ''
+    }));
   };
 
   const validateForm = () => {
@@ -354,14 +375,16 @@ function Register() {
                     id="career"
                     name="career"
                     value={formData.career || ''}
-                    onChange={handleChange}
+                    onChange={handleCareerChange}
                     className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     required
                     disabled={!formData.department_id}
                   >
                     <option value="">Select Career</option>
                     {careers.map(career => (
-                      <option key={career.id} value={career.name}>{career.name}</option>
+                      <option key={career.id} value={career.name}>
+                        {career.name}
+                      </option>
                     ))}
                   </select>
                 </div>

@@ -62,8 +62,29 @@ const runMigrations = async () => {
 // Initialize database schema
 const initializeDb = async () => {
   try {
+    // Create departments and careers tables first
     await new Promise((resolve, reject) => {
-      // Create users table with new columns
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS departments (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL UNIQUE,
+          description TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS careers (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          department_id INTEGER,
+          FOREIGN KEY (department_id) REFERENCES departments(id)
+        );
+      `, (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    // Create users table with all columns
+    await new Promise((resolve, reject) => {
       db.run(`
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,13 +94,17 @@ const initializeDb = async () => {
           role TEXT DEFAULT 'user',
           hourlyRate REAL DEFAULT 0,
           career TEXT,
+          career_id INTEGER,
           bankName TEXT,
           branchCode TEXT,
           accountNumber TEXT,
           address TEXT,
           phoneNumber TEXT,
           disabled INTEGER DEFAULT 0,
-          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+          department_id INTEGER,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (department_id) REFERENCES departments(id),
+          FOREIGN KEY (career_id) REFERENCES careers(id)
         )
       `, (err) => {
         if (err) {
@@ -107,20 +132,21 @@ const initializeDb = async () => {
           if (err) {
             console.error('Error creating tasks table:', err);
             reject(err);
-            return;
+          } else {
+            console.log('Database initialized successfully');
+            resolve();
           }
-          console.log('Database initialized successfully');
-          resolve();
         });
       });
     });
-    
+
     // Run migrations after tables are created
     await runMigrations();
     
     return Promise.resolve();
   } catch (error) {
-    return Promise.reject(error);
+    console.error('Database initialization failed:', error);
+    throw error;
   }
 };
 
