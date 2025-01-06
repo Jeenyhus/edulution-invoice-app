@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { invoiceService } from '../services/api';
+import { invoiceService } from '../services';
 
 function Invoices() {
   const [dateRange, setDateRange] = useState({

@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { taskService } from '../services/api';
-import { userService } from '../services/api';
+import { taskService, userService } from '../services';
 import { useNavigate, useLocation } from 'react-router-dom';
 import TaskForm from '../components/TaskForm';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { calculateEarnings } from '../utils/calculations';
+import { useAuth } from '../contexts/AuthContext';
 
 function Dashboard() {
   const [recentTasks, setRecentTasks] = useState([]);
@@ -25,6 +25,7 @@ function Dashboard() {
     monthlyHours: 0,
     monthlyEarnings: 0
   });
+  const { user } = useAuth();
 
   const calculateDashboardStats = useCallback((tasks, hourlyRate) => {
     // Convert empty string or invalid hourly rate to 0

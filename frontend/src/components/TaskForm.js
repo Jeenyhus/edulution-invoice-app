@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { taskService } from '../services/api';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import taskService from '../services/taskService';
 
 function TaskForm({ onSubmit, initialData = null }) {
   const { user } = useAuth();
@@ -22,19 +22,21 @@ function TaskForm({ onSubmit, initialData = null }) {
   });
 
   useEffect(() => {
-    // Check for existing shifts when date changes
     const checkExistingShifts = async () => {
       try {
         const response = await taskService.getTasks();
-        // Filter tasks for the selected date only
-        const tasksForDate = response.data.filter(task => task.date === formData.date);
-        
-        setExistingShifts({
-          morning: tasksForDate.some(task => task.shift === 'morning'),
-          afternoon: tasksForDate.some(task => task.shift === 'afternoon')
-        });
+        if (response && response.data) {
+          // Filter tasks for the selected date only
+          const tasksForDate = response.data.filter(task => task.date === formData.date);
+          
+          setExistingShifts({
+            morning: tasksForDate.some(task => task.shift === 'morning'),
+            afternoon: tasksForDate.some(task => task.shift === 'afternoon')
+          });
+        }
       } catch (error) {
         console.error('Error checking existing shifts:', error);
+        toast.error('Failed to check existing shifts');
       }
     };
 

@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function ProfileForm({ onSubmit, initialData, onCancel }) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState(initialData);
 
   const handleSubmit = async (e) => {

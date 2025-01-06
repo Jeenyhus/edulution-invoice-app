@@ -1,14 +1,16 @@
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const User = require('../models/User');
-require('dotenv').config();
+const { db } = require('../config/db');
 
 const createAdminUser = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    
-    const adminExists = await User.findOne({ email: 'dmweemba@edulution.org' });
-    
+    // Check if admin exists
+    const adminExists = await new Promise((resolve, reject) => {
+      db.get('SELECT * FROM users WHERE email = ?', ['dmweemba@edulution.org'], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
     if (adminExists) {
       console.log('Super admin already exists');
       process.exit(0);
@@ -17,16 +19,29 @@ const createAdminUser = async () => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash('admin123', salt);
 
-    const admin = await User.create({
-      name: 'Dabwitso Mweemba',
-      email: 'dmweemba@edulution.org',
-      password: hashedPassword,
-      role: 'superadmin',
-      hourlyRate: 100,
-      career: 'Administrator'
+    // Create admin user
+    await new Promise((resolve, reject) => {
+      db.run(`
+        INSERT INTO users (
+          name, email, password, role, hourlyRate, 
+          career, department_id, career_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        'Dabwitso Mweemba',
+        'dmweemba@edulution.org',
+        hashedPassword,
+        'superadmin',
+        100,
+        'Administrator',
+        2,  // Technology Department
+        3   // Senior Software Developer
+      ], (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
     });
 
-    console.log('Super admin created:', admin);
+    console.log('Super admin created successfully');
     process.exit(0);
   } catch (error) {
     console.error('Error:', error);

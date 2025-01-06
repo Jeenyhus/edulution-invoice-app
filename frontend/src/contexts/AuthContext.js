@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { authService } from '../services/api';
+import { authService } from '../services';
 import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
@@ -24,7 +24,6 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.login({ email, password });
       const { token, user } = response.data;
       
-      // Save auth data
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       
@@ -49,7 +48,6 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.register(userData);
       const { token, user } = response.data;
       
-      // Save auth data
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       
@@ -64,10 +62,10 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    loading,
     login,
     logout,
-    register,
-    isAuthenticated: !!user
+    register
   };
 
   return (

@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { departmentService } from '../services';
 
 
 function Register() {
@@ -13,7 +14,9 @@ function Register() {
     branchCode: '',
     accountNumber: '',
     address: '',
-    career: '',  // This will be used as category alias
+    career: '',
+    career_id: null,
+    department_id: null,
     phoneNumber: '',
     passwordConfirm: ''
   });
@@ -35,6 +38,52 @@ function Register() {
   const { register } = useAuth();
   const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
+  const [departments, setDepartments] = useState([]);
+  const [careers, setCareers] = useState([]);
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const response = await departmentService.getDepartments();
+        setDepartments(response.data);
+        
+        // If there are departments, set the careers for the first one
+        if (response.data.length > 0) {
+          setCareers(response.data[0].careers || []);
+        }
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+      }
+    };
+    
+    fetchDepartments();
+  }, []);
+
+  const handleDepartmentChange = (e) => {
+    const deptId = e.target.value;
+    const selectedDept = departments.find(d => d.id === parseInt(deptId));
+    
+    setFormData(prev => ({
+      ...prev,
+      department_id: deptId,
+      career: '',  // Reset career when department changes
+      career_id: '' // Reset career_id when department changes
+    }));
+
+    // Update available careers for selected department
+    setCareers(selectedDept ? selectedDept.careers : []);
+  };
+
+  const handleCareerChange = (e) => {
+    const careerName = e.target.value;
+    const selectedCareer = careers.find(c => c.name === careerName);
+    
+    setFormData(prev => ({
+      ...prev,
+      career: careerName,
+      career_id: selectedCareer ? selectedCareer.id : ''
+    }));
+  };
 
   const validateForm = () => {
     let isValid = true;
@@ -300,22 +349,44 @@ function Register() {
               </h3>
               <div className="space-y-4">
                 <div>
+                  <label htmlFor="department" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Department
+                  </label>
+                  <select
+                    id="department"
+                    name="department"
+                    value={formData.department_id || ''}
+                    onChange={handleDepartmentChange}
+                    className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    required
+                  >
+                    <option value="">Select Department</option>
+                    {departments.map(dept => (
+                      <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label htmlFor="career" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Career
                   </label>
-                  <input
-                    type="text"
+                  <select
+                    id="career"
                     name="career"
-                    value={formData.career}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border ${
-                      errors.career ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    } rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
+                    value={formData.career || ''}
+                    onChange={handleCareerChange}
+                    className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-1 focus:ring-primary-DEFAULT dark:focus:ring-primary-light focus:border-primary-DEFAULT dark:focus:border-primary-light bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     required
-                  />
-                  {errors.career && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.career}</p>
-                  )}
+                    disabled={!formData.department_id}
+                  >
+                    <option value="">Select Career</option>
+                    {careers.map(career => (
+                      <option key={career.id} value={career.name}>
+                        {career.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>

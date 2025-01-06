@@ -15,7 +15,9 @@ const register = async (req, res) => {
       branchCode,
       accountNumber,
       address,
-      phoneNumber
+      phoneNumber,
+      department_id,
+      career_id
     } = req.body;
 
     // Add email domain validation
@@ -51,7 +53,9 @@ const register = async (req, res) => {
       accountNumber,
       address,
       phoneNumber,
-      role
+      role,
+      department_id,
+      career_id
     };
 
     // Check if user already exists
@@ -74,23 +78,18 @@ const register = async (req, res) => {
         INSERT INTO users (
           name, email, password, hourlyRate, career, 
           bankName, branchCode, accountNumber, address, 
-          phoneNumber, role
+          phoneNumber, role, department_id, career_id
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       db.run(sql, [
-        name, 
-        email, 
-        hashedPassword, 
-        hourlyRate,
-        career,
-        bankName,
-        branchCode,
-        accountNumber,
-        address,
-        phoneNumber,
-        role
+        userData.name, userData.email, hashedPassword, 
+        userData.hourlyRate, userData.career,
+        userData.bankName, userData.branchCode, 
+        userData.accountNumber, userData.address,
+        userData.phoneNumber, userData.role,
+        userData.department_id, userData.career_id
       ], function(err) {
         if (err) {
           console.error('Error creating user:', err);

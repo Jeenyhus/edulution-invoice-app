@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
