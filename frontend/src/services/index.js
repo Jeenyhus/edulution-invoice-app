@@ -9,7 +9,9 @@ export const userService = {
   getUsers: () => api.get('/users'),
   getProfile: () => api.get('/users/profile'),
   updateProfile: (data) => api.put('/users/profile', data),
-  deleteUser: (id) => api.delete(`/users/${id}`)
+  updateUser: (id, data) => api.put(`/users/${id}`, data),
+  deleteUser: (id) => api.delete(`/users/${id}`),
+  register: (userData) => api.post('/auth/register', userData)
 };
 
 export const taskService = {
@@ -32,4 +34,11 @@ export const invoiceService = {
   createInvoice: (data) => api.post('/invoices', data),
   updateInvoice: (id, data) => api.put(`/invoices/${id}`, data),
   deleteInvoice: (id) => api.delete(`/invoices/${id}`)
+};
+
+export const careerService = {
+  getCareers: () => api.get('/careers'),
+  addCareer: (departmentId, name) => api.post(`/departments/${departmentId}/careers`, { name }),
+  updateCareer: (id, data) => api.put(`/careers/${id}`, data),
+  deleteCareer: (id) => api.delete(`/careers/${id}`)
 }; 

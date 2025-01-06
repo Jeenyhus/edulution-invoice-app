@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { userService } from '../services';
+import { toast } from 'react-hot-toast';
+import { userService, departmentService } from '../services';
 import UserForm from '../components/UserForm';
-import { toast } from 'react-toastify';
 
 function Users() {
   const [users, setUsers] = useState([]);
@@ -9,9 +9,47 @@ function Users() {
   const [error, setError] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newUserData, setNewUserData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    hourlyRate: '',
+    career: '',
+    bankName: '',
+    branchCode: '',
+    accountNumber: '',
+    address: '',
+    phoneNumber: '',
+    department_id: '',
+    career_id: ''
+  });
+  const [departments, setDepartments] = useState([]);
+  const [careers, setCareers] = useState([]);
 
   useEffect(() => {
     fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    const fetchDepartmentsAndCareers = async () => {
+      try {
+        const deptResponse = await departmentService.getDepartments();
+        setDepartments(deptResponse.data);
+        
+        // Extract all careers from departments
+        const allCareers = deptResponse.data.reduce((acc, dept) => {
+          return [...acc, ...dept.careers];
+        }, []);
+        
+        setCareers(allCareers);
+      } catch (error) {
+        console.error('Error fetching departments and careers:', error);
+        toast.error('Failed to load departments and careers');
+      }
+    };
+
+    fetchDepartmentsAndCareers();
   }, []);
 
   const fetchUsers = async () => {
@@ -25,11 +63,14 @@ function Users() {
     }
   };
 
-  const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.role.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      (user.name?.toLowerCase() || '').includes(searchLower) ||
+      (user.email?.toLowerCase() || '').includes(searchLower) ||
+      (user.career?.toLowerCase() || '').includes(searchLower)
+    );
+  });
 
   const handleUpdateUser = async (formData) => {
     try {
@@ -67,6 +108,62 @@ function Users() {
       console.error('Error updating user status:', error);
       toast.error(error.response?.data?.message || 'Failed to update user status');
     }
+  };
+
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await userService.register(newUserData);
+      if (response.data) {
+        setUsers([...users, response.data]);
+        setIsCreateModalOpen(false);
+        setNewUserData({
+          name: '',
+          email: '',
+          password: '',
+          hourlyRate: '',
+          career: '',
+          bankName: '',
+          branchCode: '',
+          accountNumber: '',
+          address: '',
+          phoneNumber: '',
+          department_id: '',
+          career_id: ''
+        });
+        toast.success('User created successfully');
+        fetchUsers(); // Refresh the users list
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+      toast.error(error.response?.data?.error || 'Failed to create user');
+    }
+  };
+
+  const handleDepartmentChange = (e) => {
+    const deptId = e.target.value;
+    const selectedDept = departments.find(d => d.id === parseInt(deptId));
+    
+    setNewUserData(prev => ({
+      ...prev,
+      department_id: deptId,
+      career: '',  // Reset career when department changes
+      career_id: '' // Reset career_id when department changes
+    }));
+
+    // Update available careers for selected department
+    setCareers(selectedDept ? selectedDept.careers : []);
+  };
+
+  const handleCareerChange = (e) => {
+    const careerName = e.target.value;
+    const selectedCareer = careers.find(c => c.name === careerName);
+    
+    setNewUserData(prev => ({
+      ...prev,
+      career: careerName,
+      career_id: selectedCareer ? selectedCareer.id : ''
+    }));
   };
 
   if (loading) {
@@ -212,6 +309,12 @@ function Users() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Create User
+              </button>
             </div>
           </div>
           <div className="overflow-x-auto">
@@ -318,6 +421,174 @@ function Users() {
                 onCancel={() => setEditingUser(null)}
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create User Modal */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Create New User</h2>
+              <button 
+                onClick={() => setIsCreateModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateUser} className="space-y-6">
+              {/* Personal Information */}
+              <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Personal Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      value={newUserData.name}
+                      onChange={(e) => setNewUserData({...newUserData, name: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                    <input
+                      type="email"
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      value={newUserData.email}
+                      onChange={(e) => setNewUserData({...newUserData, email: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                    <input
+                      type="password"
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      value={newUserData.password}
+                      onChange={(e) => setNewUserData({...newUserData, password: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number</label>
+                    <input
+                      type="tel"
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      value={newUserData.phoneNumber}
+                      onChange={(e) => setNewUserData({...newUserData, phoneNumber: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Professional Information */}
+              <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Professional Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                    <select
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      value={newUserData.department_id}
+                      onChange={handleDepartmentChange}
+                    >
+                      <option value="">Select Department</option>
+                      {departments.map(dept => (
+                        <option key={dept.id} value={dept.id}>{dept.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Career</label>
+                    <select
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      value={newUserData.career}
+                      onChange={handleCareerChange}
+                    >
+                      <option value="">Select Career</option>
+                      {careers.map(career => (
+                        <option key={career.id} value={career.name}>{career.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hourly Rate (ZMW)</label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      step="0.01"
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      value={newUserData.hourlyRate}
+                      onChange={(e) => setNewUserData({...newUserData, hourlyRate: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Banking Information */}
+              <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Banking Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Bank Name</label>
+                    <input
+                      type="text"
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      value={newUserData.bankName}
+                      onChange={(e) => setNewUserData({...newUserData, bankName: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Branch Code</label>
+                    <input
+                      type="text"
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      value={newUserData.branchCode}
+                      onChange={(e) => setNewUserData({...newUserData, branchCode: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Account Number</label>
+                    <input
+                      type="text"
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      value={newUserData.accountNumber}
+                      onChange={(e) => setNewUserData({...newUserData, accountNumber: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 rounded-md"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Create User
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
