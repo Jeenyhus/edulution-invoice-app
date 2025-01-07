@@ -1,50 +1,26 @@
-import axios from 'axios';
+import api from './api';
 
-const API_URL = '/api';
-
-const taskService = {
-  getTasks: async () => {
-    const response = await axios.get(`${API_URL}/tasks`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    });
-    return response.data;
-  },
-
-  createTask: async (taskData) => {
-    try {
-      const response = await axios.post(`${API_URL}/tasks`, taskData, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      return response;
-    } catch (error) {
-      if (error.response?.data?.message) {
-        throw error;
-      }
-      throw new Error('Network error while creating task');
-    }
-  },
-
-  updateTask: async (id, taskData) => {
-    const response = await axios.put(`${API_URL}/tasks/${id}`, taskData, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    });
-    return response.data;
-  },
-
-  deleteTask: async (id) => {
-    const response = await axios.delete(`${API_URL}/tasks/${id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    });
+class TaskService {
+  async getTasks() {
+    const response = await api.get('/api/tasks');
     return response.data;
   }
-};
 
+  async createTask(data) {
+    const response = await api.post('/api/tasks', data);
+    return response.data;
+  }
+
+  async updateTask(id, data) {
+    const response = await api.put(`/api/tasks/${id}`, data);
+    return response.data;
+  }
+
+  async deleteTask(id) {
+    const response = await api.delete(`/api/tasks/${id}`);
+    return response.data;
+  }
+}
+
+export const taskService = new TaskService();
 export default taskService; 

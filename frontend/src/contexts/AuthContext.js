@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext();
 
@@ -9,27 +10,35 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Check for existing auth on mount
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUser(decoded);
+      } catch (error) {
+        console.error('Invalid token:', error);
+        localStorage.removeItem('token');
+      }
     }
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (tokenOrCredentials) => {
     try {
-      const response = await authService.login({ email, password });
-      const { token, user } = response.data;
-      
+      let response;
+      if (typeof tokenOrCredentials === 'string') {
+        // Google login - already have token
+        response = { token: tokenOrCredentials };
+      } else {
+        // Regular login with email/password
+        response = await authService.login(tokenOrCredentials.email, tokenOrCredentials.password);
+      }
+
+      const { token } = response;
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      setUser(user);
-      navigate('/');
-      return true;
+      const decoded = jwtDecode(token);
+      setUser(decoded);
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -38,34 +47,15 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
     setUser(null);
     navigate('/login', { state: { showLogoutMessage: true } });
   };
 
-  const register = async (userData) => {
-    try {
-      const response = await authService.register(userData);
-      const { token, user } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      setUser(user);
-      navigate('/');
-      return true;
-    } catch (error) {
-      console.error('Registration failed:', error);
-      throw error;
-    }
-  };
-
   const value = {
     user,
-    loading,
     login,
     logout,
-    register
+    loading
   };
 
   return (
@@ -76,9 +66,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return useContext(AuthContext);
 }; 

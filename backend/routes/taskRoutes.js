@@ -1,28 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middleware/authMiddleware');
-const {
-  getTasks,
-  createTask,
-  updateTask,
-  deleteTask
-} = require('../controllers/taskController');
+const { authenticateToken } = require('../middleware/auth');
+const { getTasks, createTask, updateTask, deleteTask } = require('../controllers/taskController');
 
-// Add logging middleware
-router.use((req, res, next) => {
-  console.log(`${req.method} ${req.originalUrl}`, {
-    headers: req.headers,
-    body: req.body
-  });
-  next();
-});
-
-// Protect all task routes
-router.use(protect);
-
-router.get('/', getTasks);
-router.post('/', createTask);
-router.put('/:id', updateTask);
-router.delete('/:id', deleteTask);
+router.get('/', authenticateToken, getTasks);
+router.post('/', authenticateToken, createTask);
+router.put('/:id', authenticateToken, updateTask);
+router.delete('/:id', authenticateToken, deleteTask);
 
 module.exports = router;

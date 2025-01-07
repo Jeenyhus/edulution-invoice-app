@@ -1,44 +1,13 @@
-import api from './api';
+import { authService } from './authService';
+import { userService } from './userService';
+import { taskService } from './taskService';
+import { departmentService } from './departmentService';
+import { invoiceService } from './invoiceService';
 
-export const authService = {
-  login: (credentials) => api.post('/auth/login', credentials),
-  register: (userData) => api.post('/auth/register', userData)
-};
-
-export const userService = {
-  getUsers: () => api.get('/users'),
-  getProfile: () => api.get('/users/profile'),
-  updateProfile: (data) => api.put('/users/profile', data),
-  updateUser: (id, data) => api.put(`/users/${id}`, data),
-  deleteUser: (id) => api.delete(`/users/${id}`),
-  register: (userData) => api.post('/auth/register', userData)
-};
-
-export const taskService = {
-  getTasks: () => api.get('/tasks'),
-  createTask: (data) => api.post('/tasks', data),
-  updateTask: (id, data) => api.put(`/tasks/${id}`, data),
-  deleteTask: (id) => api.delete(`/tasks/${id}`)
-};
-
-export const departmentService = {
-  getDepartments: () => api.get('/departments'),
-  updateDepartment: (id, data) => api.put(`/departments/${id}`, data),
-  deleteDepartment: (id) => api.delete(`/departments/${id}`),
-  addCareer: (deptId, careerName) => api.post(`/departments/${deptId}/careers`, { name: careerName }),
-  deleteCareer: (deptId, careerId) => api.delete(`/departments/${deptId}/careers/${careerId}`)
-};
-
-export const invoiceService = {
-  getInvoices: () => api.get('/invoices'),
-  createInvoice: (data) => api.post('/invoices', data),
-  updateInvoice: (id, data) => api.put(`/invoices/${id}`, data),
-  deleteInvoice: (id) => api.delete(`/invoices/${id}`)
-};
-
-export const careerService = {
-  getCareers: () => api.get('/careers'),
-  addCareer: (departmentId, name) => api.post(`/departments/${departmentId}/careers`, { name }),
-  updateCareer: (id, data) => api.put(`/careers/${id}`, data),
-  deleteCareer: (id) => api.delete(`/careers/${id}`)
+export {
+  authService,
+  userService,
+  taskService,
+  departmentService,
+  invoiceService
 }; 

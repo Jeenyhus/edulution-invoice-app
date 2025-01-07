@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import taskService from '../services/taskService';
+import { taskService } from '../services';
 
 function TaskForm({ onSubmit, initialData = null }) {
   const { user } = useAuth();

@@ -8,9 +8,12 @@ import { calculateEarnings } from '../utils/calculations';
 import { useAuth } from '../contexts/AuthContext';
 
 function Dashboard() {
+  const [userData, setUserData] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [recentTasks, setRecentTasks] = useState([]);
   const [totalHours, setTotalHours] = useState(0);
-  const [userData, setUserData] = useState(null);
   const [taskStats, setTaskStats] = useState({
     totalTasks: 0,
     thisWeekTasks: 0

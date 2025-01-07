@@ -4,7 +4,6 @@ import ProfileForm from '../components/ProfileForm';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { calculateEarnings } from '../utils/calculations';
-import { useAuth } from '../contexts/AuthContext';
 
 function Profile() {
   const [profile, setProfile] = useState(null);
