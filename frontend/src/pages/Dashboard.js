@@ -61,13 +61,10 @@ function Dashboard() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [tasksResponse, profileResponse] = await Promise.all([
+      const [tasks, profile] = await Promise.all([
         taskService.getTasks(),
         userService.getProfile()
       ]);
-      
-      const tasks = tasksResponse.data;
-      const profile = profileResponse.data;
       
       console.log('Profile data:', profile);
       console.log('Tasks data:', tasks);
@@ -95,11 +92,13 @@ function Dashboard() {
 
       setTaskStats({
         totalTasks: tasks.length,
-        thisWeekTasks: Math.round(thisWeekHours * 100) / 100 // Round to 2 decimal places
+        thisWeekTasks: Math.round(thisWeekHours * 100) / 100
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      toast.error('Failed to fetch dashboard data');
+      setError('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
     }
   }, [calculateDashboardStats]);
 

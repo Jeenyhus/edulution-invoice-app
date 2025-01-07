@@ -20,8 +20,26 @@ const getTasks = async (req, res) => {
 
 const createTask = async (req, res) => {
   try {
-    const { description, date, shift, startTime, endTime, hoursWorked, category } = req.body;
+    const { description, date, shift, startTime, endTime, hoursWorked } = req.body;
     const userId = req.user.id;
+    
+    // Get user's career from the database
+    const getUserCareer = () => {
+      return new Promise((resolve, reject) => {
+        db.get('SELECT career FROM users WHERE id = ?', [userId], (err, user) => {
+          if (err) reject(err);
+          else resolve(user?.career);
+        });
+      });
+    };
+
+    const userCareer = await getUserCareer();
+    
+    if (!userCareer) {
+      return res.status(400).json({ 
+        message: 'User career not found. Please update your profile.' 
+      });
+    }
     
     // Validate required fields
     if (!description || !date || !shift || !startTime || !endTime || !hoursWorked) {
@@ -30,28 +48,7 @@ const createTask = async (req, res) => {
       });
     }
 
-    // Validate hours worked
-    if (hoursWorked <= 0) {
-      return res.status(400).json({ 
-        message: 'Invalid time range' 
-      });
-    }
-    
-    // Check existing tasks
-    const taskCounts = await Task.checkExistingTasksForDay(userId, date, shift);
-    
-    if (taskCounts.shiftCount > 0) {
-      return res.status(400).json({ 
-        message: `You already have a task recorded for the ${shift} shift on ${date}` 
-      });
-    }
-    
-    if (taskCounts.totalTasksForDay >= 2) {
-      return res.status(400).json({ 
-        message: `Maximum tasks for ${date} already recorded` 
-      });
-    }
-    
+    // Create task with user's career as category
     const taskId = await Task.createTask({
       description,
       date,
@@ -59,7 +56,7 @@ const createTask = async (req, res) => {
       startTime,
       endTime,
       hoursWorked,
-      category,
+      category: userCareer, // Use the career from database
       userId
     });
     

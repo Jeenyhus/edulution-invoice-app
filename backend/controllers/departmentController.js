@@ -96,8 +96,82 @@ const addCareer = async (req, res) => {
   }
 };
 
+const updateDepartment = async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+  
+  if (!name) {
+    return res.status(400).json({ error: 'Department name is required' });
+  }
+
+  try {
+    db.run('UPDATE departments SET name = ? WHERE id = ?', [name, id], function(err) {
+      if (err) {
+        console.error('Error updating department:', err);
+        return res.status(500).json({ error: 'Failed to update department' });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'Department not found' });
+      }
+      
+      res.json({ id: parseInt(id), name });
+    });
+  } catch (error) {
+    console.error('Error in updateDepartment:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const deleteDepartment = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    db.run('DELETE FROM departments WHERE id = ?', [id], function(err) {
+      if (err) {
+        console.error('Error deleting department:', err);
+        return res.status(500).json({ error: 'Failed to delete department' });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'Department not found' });
+      }
+      
+      res.json({ message: 'Department deleted successfully' });
+    });
+  } catch (error) {
+    console.error('Error in deleteDepartment:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const deleteCareer = async (req, res) => {
+  const { id, careerId } = req.params;
+
+  try {
+    db.run('DELETE FROM careers WHERE id = ? AND department_id = ?', [careerId, id], function(err) {
+      if (err) {
+        console.error('Error deleting career:', err);
+        return res.status(500).json({ error: 'Failed to delete career' });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'Career not found' });
+      }
+      
+      res.json({ message: 'Career deleted successfully' });
+    });
+  } catch (error) {
+    console.error('Error in deleteCareer:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 module.exports = {
   getDepartments,
   addDepartment,
-  addCareer
+  updateDepartment,
+  deleteDepartment,
+  addCareer,
+  deleteCareer
 }; 

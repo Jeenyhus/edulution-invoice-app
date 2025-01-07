@@ -26,6 +26,16 @@ class AuthService {
   logout() {
     localStorage.removeItem('token');
   }
+
+  async register(userData) {
+    try {
+      const response = await api.post('/api/auth/register', userData);
+      return response.data;
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
+  }
 }
 
 export const authService = new AuthService(); 

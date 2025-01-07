@@ -24,21 +24,31 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (tokenOrCredentials) => {
+  const login = async (emailOrToken, password = null) => {
     try {
-      let response;
-      if (typeof tokenOrCredentials === 'string') {
-        // Google login - already have token
-        response = { token: tokenOrCredentials };
+      let token;
+      
+      // If password is provided, it's an email/password login
+      if (password) {
+        const response = await authService.login(emailOrToken, password);
+        token = response.token;
       } else {
-        // Regular login with email/password
-        response = await authService.login(tokenOrCredentials.email, tokenOrCredentials.password);
+        // If no password, treat emailOrToken as a token (Google login)
+        token = emailOrToken;
       }
 
-      const { token } = response;
+      if (!token) {
+        throw new Error('No token received');
+      }
+
+      // Store token
       localStorage.setItem('token', token);
+      
+      // Decode and set user
       const decoded = jwtDecode(token);
       setUser(decoded);
+
+      return decoded;
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -51,10 +61,20 @@ export const AuthProvider = ({ children }) => {
     navigate('/login', { state: { showLogoutMessage: true } });
   };
 
+  const register = async (userData) => {
+    try {
+      const response = await authService.register(userData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const value = {
     user,
     login,
     logout,
+    register,
     loading
   };
 

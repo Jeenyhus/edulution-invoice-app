@@ -34,11 +34,11 @@ function Users() {
   useEffect(() => {
     const fetchDepartmentsAndCareers = async () => {
       try {
-        const deptResponse = await departmentService.getDepartments();
-        setDepartments(deptResponse.data);
+        const departments = await departmentService.getDepartments();
+        setDepartments(departments);
         
         // Extract all careers from departments
-        const allCareers = deptResponse.data.reduce((acc, dept) => {
+        const allCareers = departments.reduce((acc, dept) => {
           return [...acc, ...dept.careers];
         }, []);
         
@@ -54,8 +54,8 @@ function Users() {
 
   const fetchUsers = async () => {
     try {
-      const response = await userService.getUsers();
-      setUsers(response.data);
+      const users = await userService.getUsers();
+      setUsers(users || []);
       setLoading(false);
     } catch (err) {
       setError('Failed to load users');
@@ -63,32 +63,50 @@ function Users() {
     }
   };
 
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = users?.filter(user => {
     const searchLower = searchQuery.toLowerCase();
     return (
       (user.name?.toLowerCase() || '').includes(searchLower) ||
       (user.email?.toLowerCase() || '').includes(searchLower) ||
       (user.career?.toLowerCase() || '').includes(searchLower)
     );
-  });
+  }) || [];
 
   const handleUpdateUser = async (formData) => {
     try {
-      // Ensure hourlyRate is a number
+      // Validate required fields
+      if (!formData.name || !formData.email || !formData.career || !formData.hourlyRate) {
+        toast.error('Please fill in all required fields');
+        return;
+      }
+
+      // Ensure hourlyRate is a valid number
+      const hourlyRate = parseFloat(formData.hourlyRate);
+      if (isNaN(hourlyRate) || hourlyRate <= 0) {
+        toast.error('Please enter a valid hourly rate');
+        return;
+      }
+
       const userData = {
         ...formData,
-        hourlyRate: parseFloat(formData.hourlyRate)
+        hourlyRate: hourlyRate
       };
 
-      const response = await userService.updateUser(editingUser.id, userData);
+      // Show loading toast
+      const loadingToast = toast.loading('Updating user...');
+
+      const updatedUser = await userService.updateUser(editingUser.id, userData);
       
-      if (response.data) {
-        setUsers(users.map(user => 
-          user.id === editingUser.id ? response.data : user
-        ));
-        setEditingUser(null);
-        toast.success('User updated successfully');
-      }
+      // Update local state
+      setUsers(users.map(user => 
+        user.id === editingUser.id ? updatedUser : user
+      ));
+      
+      setEditingUser(null);
+      
+      // Dismiss loading toast and show success
+      toast.dismiss(loadingToast);
+      toast.success('User updated successfully');
     } catch (error) {
       console.error('Error updating user:', error);
       toast.error(error.response?.data?.message || 'Failed to update user');
@@ -97,13 +115,11 @@ function Users() {
 
   const handleToggleUserStatus = async (user) => {
     try {
-      const response = await userService.updateUserStatus(user.id, !user.disabled);
-      if (response.data) {
-        setUsers(users.map(u => 
-          u.id === user.id ? response.data : u
-        ));
-        toast.success(`User ${response.data.disabled ? 'disabled' : 'enabled'} successfully`);
-      }
+      const updatedUser = await userService.updateUserStatus(user.id, !user.disabled);
+      setUsers(users.map(u => 
+        u.id === user.id ? updatedUser : u
+      ));
+      toast.success(`User ${updatedUser.disabled ? 'disabled' : 'enabled'} successfully`);
     } catch (error) {
       console.error('Error updating user status:', error);
       toast.error(error.response?.data?.message || 'Failed to update user status');
@@ -121,15 +137,8 @@ function Users() {
           name: '',
           email: '',
           password: '',
-          hourlyRate: '',
           career: '',
-          bankName: '',
-          branchCode: '',
-          accountNumber: '',
-          address: '',
-          phoneNumber: '',
-          department_id: '',
-          career_id: ''
+          hourlyRate: ''
         });
         toast.success('User created successfully');
         fetchUsers(); // Refresh the users list
@@ -380,15 +389,15 @@ function Users() {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
                         onClick={() => handleToggleUserStatus(user)}
-                        className={`${
+                        className={`px-3 py-1 rounded text-sm font-medium ${
                           user.disabled 
-                            ? 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'
-                            : 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300'
-                        } mr-4`}
+                            ? 'bg-gray-100 text-gray-800 hover:bg-gray-200' 
+                            : 'bg-red-100 text-red-800 hover:bg-red-200'
+                        }`}
                         disabled={user.role === 'superadmin'}
-                        title={user.role === 'superadmin' ? 'Cannot disable superadmin account' : ''}
+                        title={user.role === 'superadmin' ? 'Cannot disable superadmin' : ''}
                       >
-                        {user.disabled ? 'Enable' : 'Disable'}
+                        {user.disabled ? '🔓 Enable' : '🔒 Disable'}
                       </button>
                       <button
                         onClick={() => setEditingUser(user)}

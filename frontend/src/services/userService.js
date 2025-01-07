@@ -16,6 +16,11 @@ class UserService {
     return response.data;
   }
 
+  async updateUserStatus(id, disabled) {
+    const response = await api.put(`/api/users/${id}/status`, { disabled });
+    return response.data;
+  }
+
   async deleteUser(id) {
     const response = await api.delete(`/api/users/${id}`);
     return response.data;
