@@ -2,25 +2,48 @@ import api from './api';
 
 class TaskService {
   async getTasks() {
-    const response = await api.get('/api/tasks');
-    return response.data;
+    try {
+      const response = await api.get('/api/tasks');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+      throw error;
+    }
   }
 
   async createTask(data) {
-    const response = await api.post('/api/tasks', data);
-    return response.data;
+    try {
+      const response = await api.post('/api/tasks', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating task:', error);
+      throw error;
+    }
   }
 
   async updateTask(id, data) {
-    const response = await api.put(`/api/tasks/${id}`, data);
-    return response.data;
+    try {
+      console.log('Sending update request for task:', id);
+      console.log('Update data:', data);
+      
+      const response = await api.put(`/api/tasks/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error in taskService.updateTask:', error);
+      console.error('Error response:', error.response?.data);
+      throw error;
+    }
   }
-
   async deleteTask(id) {
-    const response = await api.delete(`/api/tasks/${id}`);
-    return response.data;
+    try {
+      const response = await api.delete(`/api/tasks/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      throw error;
+    }
   }
 }
 
 export const taskService = new TaskService();
-export default taskService; 
+export default taskService;

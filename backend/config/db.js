@@ -145,7 +145,7 @@ const initializeDb = async () => {
             startTime TEXT NOT NULL,
             endTime TEXT NOT NULL,
             hoursWorked REAL NOT NULL,
-            category TEXT NOT NULL,
+            category TEXT NULL,
             userId INTEGER,
             createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (userId) REFERENCES users(id)

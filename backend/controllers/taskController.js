@@ -71,28 +71,43 @@ const createTask = async (req, res) => {
   }
 };
 
+// taskController.js
 const updateTask = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
-
+    
     // First verify the task belongs to this user
     const existingTask = await Task.getTaskById(id);
     if (!existingTask || existingTask.userId !== userId) {
       return res.status(403).json({ message: 'Not authorized to update this task' });
     }
 
-    const changes = await Task.updateTask(id, req.body);
+    // Only include category in updateData if it exists in the existing task
+    const updateData = {
+      ...req.body,
+      userId: existingTask.userId  // Preserve the userId
+    };
+
+    // Only add category to updateData if it exists in the existing task
+    if (existingTask.category) {
+      updateData.category = existingTask.category;
+    }
+    
+    console.log('Update data to be sent:', updateData);
+
+    const changes = await Task.updateTask(id, updateData);
     if (changes === 0) {
       return res.status(404).json({ message: 'Task not found' });
     }
+
     const updatedTask = await Task.getTaskById(id);
     res.json(updatedTask);
   } catch (err) {
     console.error('Error updating task:', err);
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Error updating task',
-      error: err.message 
+      error: err.message
     });
   }
 };
