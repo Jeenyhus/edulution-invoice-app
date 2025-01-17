@@ -6,6 +6,7 @@ import taskService from '../services/taskService';
 
 function TaskForm({ onSubmit, initialData = null }) {
   const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
     date: initialData?.date?.split('T')[0] || new Date().toISOString().split('T')[0],
@@ -25,12 +26,16 @@ function TaskForm({ onSubmit, initialData = null }) {
     const checkExistingShifts = async () => {
       try {
         const tasks = await taskService.getTasks();
-        
         const tasksForDate = tasks.filter(task => task.date === formData.date);
         
+        // If updating, don't count the current task as an existing shift
+        const filteredTasks = initialData 
+          ? tasksForDate.filter(task => task.id !== initialData.id)
+          : tasksForDate;
+        
         setExistingShifts({
-          morning: tasksForDate.some(task => task.shift === 'morning'),
-          afternoon: tasksForDate.some(task => task.shift === 'afternoon')
+          morning: filteredTasks.some(task => task.shift === 'morning'),
+          afternoon: filteredTasks.some(task => task.shift === 'afternoon')
         });
       } catch (error) {
         console.error('Error checking existing shifts:', error);
@@ -39,12 +44,14 @@ function TaskForm({ onSubmit, initialData = null }) {
     };
 
     checkExistingShifts();
-  }, [formData.date]);
+  }, [formData.date, initialData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
+      setIsSubmitting(true);
+
       const requiredFields = ['date', 'shift', 'startTime', 'endTime', 'description'];
       const missingFields = requiredFields.filter(field => !formData[field]);
       
@@ -74,9 +81,38 @@ function TaskForm({ onSubmit, initialData = null }) {
       }
 
       await onSubmit(formData);
+      
+      toast.success(
+        initialData 
+          ? 'Task updated successfully!' 
+          : 'Task created successfully!',
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        }
+      );
+
+      // Clear form if it's a new task (not an update)
+      if (!initialData) {
+        setFormData({
+          date: new Date().toISOString().split('T')[0],
+          shift: 'morning',
+          startTime: '',
+          endTime: '',
+          description: '',
+          hoursWorked: ''
+        });
+      }
     } catch (error) {
       console.error('Error submitting task:', error);
       toast.error(error.response?.data?.message || 'Failed to submit task');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -125,8 +161,6 @@ function TaskForm({ onSubmit, initialData = null }) {
       return newData;
     });
   };
-
-  console.log('Form data:', formData);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -214,9 +248,14 @@ function TaskForm({ onSubmit, initialData = null }) {
       <div className="flex justify-end">
         <button
           type="submit"
-          className="px-6 py-2 text-sm font-medium text-white bg-[#0072cd] rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors duration-200"
+          disabled={isSubmitting}
+          className={`px-6 py-2 text-sm font-medium text-white ${
+            isSubmitting ? 'bg-gray-400' : 'bg-[#0072cd] hover:bg-gray-800'
+          } rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors duration-200`}
         >
-          {initialData ? 'Update Task' : 'Create Task'}
+          {isSubmitting 
+            ? (initialData ? 'Updating...' : 'Creating...') 
+            : (initialData ? 'Update Task' : 'Create Task')}
         </button>
       </div>
     </form>
