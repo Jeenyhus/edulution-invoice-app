@@ -7,14 +7,11 @@ import taskService from '../services/taskService';
 function TaskForm({ onSubmit, initialData = null }) {
   const { user } = useAuth();
   
-  // Initialize form data with user's career
   const [formData, setFormData] = useState({
     date: initialData?.date?.split('T')[0] || new Date().toISOString().split('T')[0],
     shift: initialData?.shift || 'morning',
     startTime: initialData?.startTime || '',
     endTime: initialData?.endTime || '',
-    // Set category from initialData, user career, or empty string as fallback
-    category: initialData?.category || user?.career || '',
     description: initialData?.description || '',
     hoursWorked: initialData?.hoursWorked || ''
   });
@@ -27,10 +24,8 @@ function TaskForm({ onSubmit, initialData = null }) {
   useEffect(() => {
     const checkExistingShifts = async () => {
       try {
-        // Get tasks directly from response (no .data needed)
         const tasks = await taskService.getTasks();
         
-        // Filter tasks for the selected date only
         const tasksForDate = tasks.filter(task => task.date === formData.date);
         
         setExistingShifts({
@@ -46,35 +41,12 @@ function TaskForm({ onSubmit, initialData = null }) {
     checkExistingShifts();
   }, [formData.date]);
 
-  // Update category whenever user data changes
-  useEffect(() => {
-    if (user?.career) {
-      setFormData(prev => ({
-        ...prev,
-        category: initialData?.category || user.career
-      }));
-    }
-  }, [user, initialData]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
-      // Check if user is logged in and has a career
-      if (!user || !user.career) {
-        toast.error('Unable to create task: No career specified in your profile');
-        return;
-      }
-
-      // Ensure category is set from user's career
-      const submissionData = {
-        ...formData,
-        category: user.career // Always use the user's career
-      };
-
-      // Rest of validation
       const requiredFields = ['date', 'shift', 'startTime', 'endTime', 'description'];
-      const missingFields = requiredFields.filter(field => !submissionData[field]);
+      const missingFields = requiredFields.filter(field => !formData[field]);
       
       if (missingFields.length > 0) {
         toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
@@ -101,8 +73,7 @@ function TaskForm({ onSubmit, initialData = null }) {
         return;
       }
 
-      // Continue with form submission using the updated data
-      await onSubmit(submissionData);
+      await onSubmit(formData);
     } catch (error) {
       console.error('Error submitting task:', error);
       toast.error(error.response?.data?.message || 'Failed to submit task');
@@ -119,21 +90,18 @@ function TaskForm({ onSubmit, initialData = null }) {
       return 0;
     }
     
-    let diff = (end - start) / (1000 * 60 * 60); // Convert milliseconds to hours
+    let diff = (end - start) / (1000 * 60 * 60);
     
-    // Handle cases where end time is on the next day
     if (diff < 0) {
       diff += 24;
     }
     
-    // Round to nearest 0.5
     return Math.round(diff * 2) / 2;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // If changing shift, check if it's already taken
     if (name === 'shift' && !initialData && existingShifts[value]) {
       toast.warning(`You already have a task recorded for the ${value} shift on ${formData.date}`);
       return;
@@ -142,7 +110,6 @@ function TaskForm({ onSubmit, initialData = null }) {
     setFormData(prev => {
       const newData = { ...prev, [name]: value };
       
-      // Recalculate hours worked when time changes
       if (name === 'startTime' || name === 'endTime') {
         const hours = calculateHoursWorked(
           name === 'startTime' ? value : prev.startTime,
@@ -150,7 +117,6 @@ function TaskForm({ onSubmit, initialData = null }) {
         );
         newData.hoursWorked = hours;
         
-        // Show warning if hours worked is 0
         if (hours === 0 && newData.startTime && newData.endTime) {
           toast.warning('Invalid time range selected');
         }
@@ -160,8 +126,6 @@ function TaskForm({ onSubmit, initialData = null }) {
     });
   };
 
-  // Add console.log to debug
-  console.log('User data:', user);
   console.log('Form data:', formData);
 
   return (
@@ -223,17 +187,6 @@ function TaskForm({ onSubmit, initialData = null }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Category</label>
-          <input
-            type="text"
-            name="category"
-            value={formData.category}
-            readOnly
-            className="mt-2 block w-full rounded-md border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 px-4 py-2 text-gray-900 dark:text-gray-200 shadow-sm cursor-not-allowed"
-          />
-        </div>
-
-        <div>
           <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Hours Worked</label>
           <input
             type="number"
@@ -270,4 +223,4 @@ function TaskForm({ onSubmit, initialData = null }) {
   );
 }
 
-export default TaskForm; 
+export default TaskForm;
