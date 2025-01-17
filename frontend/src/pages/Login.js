@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useGoogleLogin } from '@react-oauth/google';
+import { toast } from 'react-hot-toast';
+import { GoogleIcon } from '../components/GoogleIcon';
+import { authService } from '../services';
 
 function Login() {
   const [credentials, setCredentials] = useState({
@@ -12,12 +16,48 @@ function Login() {
     password: ''
   });
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
   const location = useLocation();
   const [showLogoutSuccess, setShowLogoutSuccess] = useState(false);
   const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (response) => {
+      try {
+        setLoading(true);
+        console.log('Google login success:', response);
+        
+        if (!response?.access_token) {
+          throw new Error('No access token received from Google');
+        }
+
+        const result = await authService.googleLogin(response.access_token);
+        console.log('Server response:', result);
+        
+        if (result && result.token) {
+          await login(result.token);
+          navigate('/dashboard');
+          toast.success('Successfully logged in!');
+        } else {
+          console.error('Invalid server response:', result);
+          throw new Error('No token received from server');
+        }
+      } catch (error) {
+        console.error('Google Login Error:', error);
+        toast.error(error.response?.data?.message || 'Failed to login with Google');
+      } finally {
+        setLoading(false);
+      }
+    },
+    onError: (error) => {
+      console.error('Google Login Error:', error);
+      toast.error('Google login failed');
+      setLoading(false);
+    },
+    flow: 'implicit'
+  });
 
   useEffect(() => {
     if (location.state?.showLogoutMessage) {
@@ -39,6 +79,26 @@ function Login() {
     }
   }, [location]);
 
+  // Add message event listener for popup communication
+  useEffect(() => {
+    const handleMessage = async (event) => {
+      console.log('Received message:', event.data);
+      if (event.data && event.data.token) {
+        try {
+          await login(event.data.token);
+          navigate('/dashboard');
+          toast.success('Successfully logged in!');
+        } catch (error) {
+          console.error('Login error:', error);
+          toast.error('Failed to log in');
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [login, navigate]);
+
   const validateForm = () => {
     let isValid = true;
     const newErrors = {
@@ -46,7 +106,6 @@ function Login() {
       password: ''
     };
 
-    // Email validation
     if (!credentials.email) {
       newErrors.email = 'Email is required';
       isValid = false;
@@ -55,7 +114,6 @@ function Login() {
       isValid = false;
     }
 
-    // Password validation
     if (!credentials.password) {
       newErrors.password = 'Password is required';
       isValid = false;
@@ -70,13 +128,12 @@ function Login() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setCredentials(prev => ({
+    setCredentials((prev) => ({
       ...prev,
       [name]: value
     }));
-    // Clear field-specific error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
         [name]: ''
       }));
@@ -86,7 +143,6 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
     if (!validateForm()) {
       return;
     }
@@ -104,7 +160,8 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      {/* Logout Success Notification */}
       {showLogoutSuccess && (
         <div className="fixed top-4 right-4 bg-green-50 p-4 rounded-md shadow-lg">
           <div className="flex">
@@ -122,6 +179,7 @@ function Login() {
         </div>
       )}
 
+      {/* Registration Success Notification */}
       {showRegistrationSuccess && (
         <div className="fixed top-4 right-4 bg-green-50 p-4 rounded-md shadow-lg">
           <div className="flex">
@@ -138,23 +196,25 @@ function Login() {
           </div>
         </div>
       )}
-      
-      <div className="max-w-md w-full space-y-6 p-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-        <div>
+
+      {/* Login Form */}
+      <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+        <div className="flex flex-col items-center">
           <img
-            src="/favicon_confluence.png"
+            src='/favicon_confluence.png'
             alt="Logo"
-            className="h-12 mx-auto mb-6"
+            className="h-12 mb-4"
           />
-          <h2 className="text-center text-3xl font-light text-gray-900 dark:text-white">
-            Welcome Back
+          <h2 className="text-3xl font-light text-gray-900 dark:text-white">
+            EDULUTION INVOICES
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Sign in to continue
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Welcome back
           </p>
         </div>
+        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
+          <div className="rounded-md shadow-sm space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Email address
@@ -163,19 +223,20 @@ function Login() {
                 id="email"
                 name="email"
                 type="email"
+                autoComplete="email"
                 required
-                className={`mt-1 block w-full px-4 py-3 border ${
-                  errors.email ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
-                } rounded-lg focus:ring-[#0072cd] focus:border-[#0072cd] transition-colors text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
+                className={`appearance-none relative block w-full px-3 py-3 border ${
+                  errors.email ? 'border-red-300' : 'border-gray-300'
+                } dark:border-gray-600 dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
+                placeholder="Email address"
                 value={credentials.email}
                 onChange={handleChange}
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.email}
-                </p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
               )}
             </div>
+            
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Password
@@ -184,59 +245,58 @@ function Login() {
                 id="password"
                 name="password"
                 type="password"
+                autoComplete="current-password"
                 required
-                className={`mt-1 block w-full px-4 py-3 border ${
-                  errors.password ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
-                } rounded-lg focus:ring-[#0072cd] focus:border-[#0072cd] transition-colors text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
+                className={`appearance-none relative block w-full px-3 py-3 border ${
+                  errors.password ? 'border-red-300' : 'border-gray-300'
+                } dark:border-gray-600 dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
+                placeholder="Password"
                 value={credentials.password}
                 onChange={handleChange}
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.password}
-                </p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
               )}
             </div>
           </div>
 
           {error && (
-            <div className="rounded-md bg-red-50 dark:bg-red-900/30 p-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800 dark:text-red-200">{error}</h3>
-                </div>
-              </div>
+            <div className="text-red-600 dark:text-red-400 text-sm text-center">
+              {error}
             </div>
           )}
 
-          <div>
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+                Don't have an account? Register here
+              </Link>
+            </div>
+          </div>
+
+          <div className="space-y-4">
             <button
               type="submit"
               disabled={loading}
-              className={`w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-[#0072cd] hover:bg-[#005ba3] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0072cd] transition-colors ${
-                loading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              {loading ? (
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              ) : (
-                'Sign in'
-              )}
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="group relative w-full flex justify-center py-3 px-4 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            >
+              <GoogleIcon className="w-5 h-5 mr-2" />
+              Sign in with Google
             </button>
           </div>
         </form>
-        <div className="text-sm text-center">
-          <span className="text-gray-500 dark:text-gray-400">Don't have an account? </span>
-          <Link to="/register" className="font-medium text-[#0072cd] hover:text-[#005ba3] dark:text-[#3b82f6] dark:hover:text-[#60a5fa] transition-colors">
-            Register here
-          </Link>
-        </div>
       </div>
     </div>
   );
 }
 
-export default Login; 
+export default Login;

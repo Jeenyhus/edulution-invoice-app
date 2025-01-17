@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { userService, taskService } from '../services';
+import { useAuth } from '../contexts/AuthContext';
 import ProfileForm from '../components/ProfileForm';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { calculateEarnings } from '../utils/calculations';
-import { useAuth } from '../contexts/AuthContext';
 
 function Profile() {
+  const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,13 +22,13 @@ function Profile() {
 
   const fetchProfileData = useCallback(async () => {
     try {
-      const [profileResponse, tasksResponse] = await Promise.all([
+      const [profileData, tasksData] = await Promise.all([
         userService.getProfile(),
         taskService.getTasks()
       ]);
 
-      const profile = profileResponse.data;
-      const tasks = tasksResponse.data;
+      const profile = profileData;
+      const tasks = tasksData || [];
 
       // Calculate monthly stats
       const now = new Date();
@@ -56,6 +57,7 @@ function Profile() {
       });
       setLoading(false);
     } catch (err) {
+      console.error('Error fetching profile:', err);
       setError('Failed to fetch profile data');
       setLoading(false);
     }
@@ -106,57 +108,21 @@ function Profile() {
     return 'Just now';
   };
 
-  const handleSubmit = async ({ event, data }) => {
-    event.preventDefault();
+  const handleSubmit = async (formData) => {
     try {
-      await userService.updateProfile(data);
+      // Ensure hourlyRate is a number
+      const userData = {
+        ...formData.data,
+        hourlyRate: parseFloat(formData.data.hourlyRate)
+      };
+
+      await userService.updateUser(user.id, userData);
       await fetchProfileData();
       setIsEditing(false);
       toast.success('Profile updated successfully');
     } catch (error) {
-      toast.error('Failed to update profile');
-    }
-  };
-
-  const calculateStats = (tasks, profile) => {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    
-    const monthlyTasks = tasks.filter(task => new Date(task.date) >= startOfMonth);
-    const monthlyHours = monthlyTasks.reduce((acc, task) => {
-      return acc + (parseFloat(task.hoursWorked) || 0);
-    }, 0);
-    
-    return {
-      monthlyHours: Math.round(monthlyHours * 100) / 100,
-      monthlyEarnings: calculateEarnings(monthlyHours, profile.hourlyRate || 0)
-    };
-  };
-
-  const handleProfileUpdate = async (formData) => {
-    try {
-      // Validate hourly rate
-      const hourlyRate = parseFloat(formData.hourlyRate);
-      if (isNaN(hourlyRate) || hourlyRate <= 0) {
-        toast.error('Please enter a valid hourly rate');
-        return;
-      }
-
-      const response = await userService.updateProfile({
-        ...formData,
-        hourlyRate: hourlyRate
-      });
-
-      if (response.data) {
-        setProfile(response.data);
-        setIsEditing(false);
-        toast.success('Profile updated successfully');
-        // Trigger a refresh of dashboard data
-        window.dispatchEvent(new Event('profileUpdated'));
-      }
-    } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
+      toast.error(error.response?.data?.message || 'Failed to update profile');
     }
   };
 

@@ -1,50 +1,49 @@
-import axios from 'axios';
+import api from './api';
 
-const API_URL = '/api';
-
-const taskService = {
-  getTasks: async () => {
-    const response = await axios.get(`${API_URL}/tasks`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    });
-    return response.data;
-  },
-
-  createTask: async (taskData) => {
+class TaskService {
+  async getTasks() {
     try {
-      const response = await axios.post(`${API_URL}/tasks`, taskData, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      return response;
+      const response = await api.get('/api/tasks');
+      return response.data;
     } catch (error) {
-      if (error.response?.data?.message) {
-        throw error;
-      }
-      throw new Error('Network error while creating task');
+      console.error('Error fetching tasks:', error);
+      throw error;
     }
-  },
-
-  updateTask: async (id, taskData) => {
-    const response = await axios.put(`${API_URL}/tasks/${id}`, taskData, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    });
-    return response.data;
-  },
-
-  deleteTask: async (id) => {
-    const response = await axios.delete(`${API_URL}/tasks/${id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    });
-    return response.data;
   }
-};
 
-export default taskService; 
+  async createTask(data) {
+    try {
+      const response = await api.post('/api/tasks', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating task:', error);
+      throw error;
+    }
+  }
+
+  async updateTask(id, data) {
+    try {
+      console.log('Sending update request for task:', id);
+      console.log('Update data:', data);
+      
+      const response = await api.put(`/api/tasks/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error in taskService.updateTask:', error);
+      console.error('Error response:', error.response?.data);
+      throw error;
+    }
+  }
+  async deleteTask(id) {
+    try {
+      const response = await api.delete(`/api/tasks/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      throw error;
+    }
+  }
+}
+
+export const taskService = new TaskService();
+export default taskService;

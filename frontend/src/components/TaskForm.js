@@ -6,16 +6,17 @@ import taskService from '../services/taskService';
 
 function TaskForm({ onSubmit, initialData = null }) {
   const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [formData, setFormData] = useState({
     date: initialData?.date?.split('T')[0] || new Date().toISOString().split('T')[0],
     shift: initialData?.shift || 'morning',
     startTime: initialData?.startTime || '',
     endTime: initialData?.endTime || '',
-    category: initialData?.category || user?.career || '',
     description: initialData?.description || '',
     hoursWorked: initialData?.hoursWorked || ''
   });
-  
+
   const [existingShifts, setExistingShifts] = useState({
     morning: false,
     afternoon: false
@@ -24,16 +25,18 @@ function TaskForm({ onSubmit, initialData = null }) {
   useEffect(() => {
     const checkExistingShifts = async () => {
       try {
-        const response = await taskService.getTasks();
-        if (response && response.data) {
-          // Filter tasks for the selected date only
-          const tasksForDate = response.data.filter(task => task.date === formData.date);
-          
-          setExistingShifts({
-            morning: tasksForDate.some(task => task.shift === 'morning'),
-            afternoon: tasksForDate.some(task => task.shift === 'afternoon')
-          });
-        }
+        const tasks = await taskService.getTasks();
+        const tasksForDate = tasks.filter(task => task.date === formData.date);
+        
+        // If updating, don't count the current task as an existing shift
+        const filteredTasks = initialData 
+          ? tasksForDate.filter(task => task.id !== initialData.id)
+          : tasksForDate;
+        
+        setExistingShifts({
+          morning: filteredTasks.some(task => task.shift === 'morning'),
+          afternoon: filteredTasks.some(task => task.shift === 'afternoon')
+        });
       } catch (error) {
         console.error('Error checking existing shifts:', error);
         toast.error('Failed to check existing shifts');
@@ -41,34 +44,75 @@ function TaskForm({ onSubmit, initialData = null }) {
     };
 
     checkExistingShifts();
-  }, [formData.date]);
+  }, [formData.date, initialData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
-      // Validate required fields
-      if (!formData.date || !formData.shift || !formData.startTime || !formData.endTime || !formData.description) {
-        toast.error('Please fill in all required fields');
+      setIsSubmitting(true);
+
+      const requiredFields = ['date', 'shift', 'startTime', 'endTime', 'description'];
+      const missingFields = requiredFields.filter(field => !formData[field]);
+      
+      if (missingFields.length > 0) {
+        toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
         return;
       }
 
       // Validate hours worked
-      if (formData.hoursWorked <= 0) {
+      if (!formData.hoursWorked || formData.hoursWorked <= 0) {
         toast.error('Invalid time range. End time must be after start time.');
         return;
       }
 
       // Check if shift is already taken (only for new tasks)
-      if (existingShifts[formData.shift] && !initialData) {
+      if (!initialData && existingShifts[formData.shift]) {
         toast.error(`You already have a task recorded for the ${formData.shift} shift on ${formData.date}`);
         return;
       }
 
+      // Validate date is not in the future
+      const selectedDate = new Date(formData.date);
+      const today = new Date();
+      if (selectedDate > today) {
+        toast.error('Cannot create tasks for future dates');
+        return;
+      }
+
       await onSubmit(formData);
+      
+      toast.success(
+        initialData 
+          ? 'Task updated successfully!' 
+          : 'Task created successfully!',
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        }
+      );
+
+      // Clear form if it's a new task (not an update)
+      if (!initialData) {
+        setFormData({
+          date: new Date().toISOString().split('T')[0],
+          shift: 'morning',
+          startTime: '',
+          endTime: '',
+          description: '',
+          hoursWorked: ''
+        });
+      }
     } catch (error) {
       console.error('Error submitting task:', error);
       toast.error(error.response?.data?.message || 'Failed to submit task');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -82,23 +126,20 @@ function TaskForm({ onSubmit, initialData = null }) {
       return 0;
     }
     
-    let diff = (end - start) / (1000 * 60 * 60); // Convert milliseconds to hours
+    let diff = (end - start) / (1000 * 60 * 60);
     
-    // Handle cases where end time is on the next day
     if (diff < 0) {
       diff += 24;
     }
     
-    // Round to nearest 0.5
     return Math.round(diff * 2) / 2;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // If changing shift, check if it's already taken
-    if (name === 'shift' && existingShifts[value] && !initialData) {
-      alert(`You already have a task recorded for the ${value} shift on ${formData.date}. Please select a different shift.`);
+    if (name === 'shift' && !initialData && existingShifts[value]) {
+      toast.warning(`You already have a task recorded for the ${value} shift on ${formData.date}`);
       return;
     }
     
@@ -106,7 +147,15 @@ function TaskForm({ onSubmit, initialData = null }) {
       const newData = { ...prev, [name]: value };
       
       if (name === 'startTime' || name === 'endTime') {
-        newData.hoursWorked = calculateHoursWorked(newData.startTime, newData.endTime);
+        const hours = calculateHoursWorked(
+          name === 'startTime' ? value : prev.startTime,
+          name === 'endTime' ? value : prev.endTime
+        );
+        newData.hoursWorked = hours;
+        
+        if (hours === 0 && newData.startTime && newData.endTime) {
+          toast.warning('Invalid time range selected');
+        }
       }
       
       return newData;
@@ -172,17 +221,6 @@ function TaskForm({ onSubmit, initialData = null }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Category</label>
-          <input
-            type="text"
-            name="category"
-            value={user?.career || formData.category}
-            readOnly
-            className="mt-2 block w-full rounded-md border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 px-4 py-2 text-gray-900 dark:text-gray-200 shadow-sm"
-          />
-        </div>
-
-        <div>
           <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Hours Worked</label>
           <input
             type="number"
@@ -210,13 +248,18 @@ function TaskForm({ onSubmit, initialData = null }) {
       <div className="flex justify-end">
         <button
           type="submit"
-          className="px-6 py-2 text-sm font-medium text-white bg-[#0072cd] rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors duration-200"
+          disabled={isSubmitting}
+          className={`px-6 py-2 text-sm font-medium text-white ${
+            isSubmitting ? 'bg-gray-400' : 'bg-[#0072cd] hover:bg-gray-800'
+          } rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors duration-200`}
         >
-          {initialData ? 'Update Task' : 'Create Task'}
+          {isSubmitting 
+            ? (initialData ? 'Updating...' : 'Creating...') 
+            : (initialData ? 'Update Task' : 'Create Task')}
         </button>
       </div>
     </form>
   );
 }
 
-export default TaskForm; 
+export default TaskForm;

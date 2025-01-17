@@ -17,12 +17,13 @@ function System() {
 
   const fetchDepartments = async () => {
     try {
-      const response = await departmentService.getDepartments();
-      console.log('Departments response:', response.data);
-      setDepartments(response.data);
+      const data = await departmentService.getDepartments();
+      console.log('Departments response:', data);
+      setDepartments(data || []);
     } catch (error) {
       console.error('Error fetching departments:', error);
       toast.error('Failed to fetch departments');
+      setDepartments([]); // Set empty array as fallback
     }
   };
 

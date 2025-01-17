@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { departmentService } from '../services';
+import { toast } from 'react-hot-toast';
 
 
 function Register() {
@@ -45,14 +46,21 @@ function Register() {
     const fetchDepartments = async () => {
       try {
         const response = await departmentService.getDepartments();
-        setDepartments(response.data);
-        
-        // If there are departments, set the careers for the first one
-        if (response.data.length > 0) {
-          setCareers(response.data[0].careers || []);
+        if (response && Array.isArray(response)) {
+          setDepartments(response);
+          // If there are departments, set the careers for the first one
+          if (response.length > 0) {
+            setCareers(response[0].careers || []);
+          }
+        } else {
+          console.error('Invalid departments data:', response);
+          toast.error('Failed to load departments');
         }
       } catch (error) {
         console.error('Error fetching departments:', error);
+        toast.error('Failed to load departments');
+        setDepartments([]); // Set empty array as fallback
+        setCareers([]); // Set empty array as fallback
       }
     };
     
@@ -157,26 +165,36 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    setLoading(true);
+    setError('');
 
     try {
-      setLoading(true);
-      // Convert hourly rate to number before sending
-      const submitData = {
+      // Validate form data
+      const validationErrors = validateForm();
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        setLoading(false);
+        return;
+      }
+
+      // Ensure hourlyRate is a number
+      const userData = {
         ...formData,
         hourlyRate: parseFloat(formData.hourlyRate)
       };
-      await register(submitData);
-      setShowSuccess(true);
-      // Add navigation after successful registration
-      setTimeout(() => {
-        navigate('/login', { 
-          state: { showRegistrationSuccess: true }
-        });
-      }, 2000);
+
+      // Call the register function from AuthContext
+      await register(userData);
+      
+      // Show success message
+      toast.success('Registration successful! Please log in.');
+      
+      // Redirect to login page
+      navigate('/login', { state: { registrationSuccess: true } });
     } catch (error) {
-      console.log('Registration error:', error);
-      setError('Registration failed. Please try again.');
+      console.error('Registration error:', error);
+      setError(error.response?.data?.message || 'Failed to create account');
+      toast.error(error.response?.data?.message || 'Failed to create account');
     } finally {
       setLoading(false);
     }
@@ -361,9 +379,13 @@ function Register() {
                     required
                   >
                     <option value="">Select Department</option>
-                    {departments.map(dept => (
-                      <option key={dept.id} value={dept.id}>{dept.name}</option>
-                    ))}
+                    {departments && departments.length > 0 ? (
+                      departments.map(dept => (
+                        <option key={dept.id} value={dept.id}>{dept.name}</option>
+                      ))
+                    ) : (
+                      <option value="" disabled>No departments available</option>
+                    )}
                   </select>
                 </div>
 
@@ -381,11 +403,15 @@ function Register() {
                     disabled={!formData.department_id}
                   >
                     <option value="">Select Career</option>
-                    {careers.map(career => (
-                      <option key={career.id} value={career.name}>
-                        {career.name}
-                      </option>
-                    ))}
+                    {careers && careers.length > 0 ? (
+                      careers.map(career => (
+                        <option key={career.id} value={career.name}>
+                          {career.name}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>No careers available</option>
+                    )}
                   </select>
                 </div>
 

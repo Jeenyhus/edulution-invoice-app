@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import taskService from '../services/taskService';
+import { taskService } from '../services';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import TaskForm from '../components/TaskForm';

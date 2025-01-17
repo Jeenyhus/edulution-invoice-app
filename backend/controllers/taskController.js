@@ -20,8 +20,26 @@ const getTasks = async (req, res) => {
 
 const createTask = async (req, res) => {
   try {
-    const { description, date, shift, startTime, endTime, hoursWorked, category } = req.body;
+    const { description, date, shift, startTime, endTime, hoursWorked } = req.body;
     const userId = req.user.id;
+    
+    // Get user's career from the database
+    const getUserCareer = () => {
+      return new Promise((resolve, reject) => {
+        db.get('SELECT career FROM users WHERE id = ?', [userId], (err, user) => {
+          if (err) reject(err);
+          else resolve(user?.career);
+        });
+      });
+    };
+
+    const userCareer = await getUserCareer();
+    
+    if (!userCareer) {
+      return res.status(400).json({ 
+        message: 'User career not found. Please update your profile.' 
+      });
+    }
     
     // Validate required fields
     if (!description || !date || !shift || !startTime || !endTime || !hoursWorked) {
@@ -30,28 +48,7 @@ const createTask = async (req, res) => {
       });
     }
 
-    // Validate hours worked
-    if (hoursWorked <= 0) {
-      return res.status(400).json({ 
-        message: 'Invalid time range' 
-      });
-    }
-    
-    // Check existing tasks
-    const taskCounts = await Task.checkExistingTasksForDay(userId, date, shift);
-    
-    if (taskCounts.shiftCount > 0) {
-      return res.status(400).json({ 
-        message: `You already have a task recorded for the ${shift} shift on ${date}` 
-      });
-    }
-    
-    if (taskCounts.totalTasksForDay >= 2) {
-      return res.status(400).json({ 
-        message: `Maximum tasks for ${date} already recorded` 
-      });
-    }
-    
+    // Create task with user's career as category
     const taskId = await Task.createTask({
       description,
       date,
@@ -59,7 +56,7 @@ const createTask = async (req, res) => {
       startTime,
       endTime,
       hoursWorked,
-      category,
+      category: userCareer, // Use the career from database
       userId
     });
     
@@ -74,28 +71,43 @@ const createTask = async (req, res) => {
   }
 };
 
+// taskController.js
 const updateTask = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
-
+    
     // First verify the task belongs to this user
     const existingTask = await Task.getTaskById(id);
     if (!existingTask || existingTask.userId !== userId) {
       return res.status(403).json({ message: 'Not authorized to update this task' });
     }
 
-    const changes = await Task.updateTask(id, req.body);
+    // Only include category in updateData if it exists in the existing task
+    const updateData = {
+      ...req.body,
+      userId: existingTask.userId  // Preserve the userId
+    };
+
+    // Only add category to updateData if it exists in the existing task
+    if (existingTask.category) {
+      updateData.category = existingTask.category;
+    }
+    
+    console.log('Update data to be sent:', updateData);
+
+    const changes = await Task.updateTask(id, updateData);
     if (changes === 0) {
       return res.status(404).json({ message: 'Task not found' });
     }
+
     const updatedTask = await Task.getTaskById(id);
     res.json(updatedTask);
   } catch (err) {
     console.error('Error updating task:', err);
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Error updating task',
-      error: err.message 
+      error: err.message
     });
   }
 };

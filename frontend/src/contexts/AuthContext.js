@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext();
 
@@ -9,27 +10,45 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Check for existing auth on mount
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUser(decoded);
+      } catch (error) {
+        console.error('Invalid token:', error);
+        localStorage.removeItem('token');
+      }
     }
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (emailOrToken, password = null) => {
     try {
-      const response = await authService.login({ email, password });
-      const { token, user } = response.data;
+      let token;
       
+      // If password is provided, it's an email/password login
+      if (password) {
+        const response = await authService.login(emailOrToken, password);
+        token = response.token;
+      } else {
+        // If no password, treat emailOrToken as a token (Google login)
+        token = emailOrToken;
+      }
+
+      if (!token) {
+        throw new Error('No token received');
+      }
+
+      // Store token
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
       
-      setUser(user);
-      navigate('/');
-      return true;
+      // Decode and set user
+      const decoded = jwtDecode(token);
+      setUser(decoded);
+
+      return decoded;
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -38,7 +57,6 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
     setUser(null);
     navigate('/login', { state: { showLogoutMessage: true } });
   };
@@ -46,26 +64,18 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await authService.register(userData);
-      const { token, user } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      setUser(user);
-      navigate('/');
-      return true;
+      return response.data;
     } catch (error) {
-      console.error('Registration failed:', error);
       throw error;
     }
   };
 
   const value = {
     user,
-    loading,
     login,
     logout,
-    register
+    register,
+    loading
   };
 
   return (
@@ -76,9 +86,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return useContext(AuthContext);
 }; 

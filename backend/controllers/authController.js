@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const { db } = require('../config/db');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const axios = require('axios');
 
 const register = async (req, res) => {
   try {
@@ -192,7 +193,73 @@ const login = async (req, res) => {
   }
 };
 
+const googleLogin = async (req, res) => {
+  try {
+    const { token } = req.body;
+    console.log('Received token for Google login:', token);
+    
+    const response = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const { email, name } = response.data;
+    console.log('Google user info:', { email, name });
+
+    if (!email.endsWith('@edulution.org')) {
+      return res.status(403).json({ message: 'Only @edulution.org emails are allowed' });
+    }
+
+    // Check if user exists
+    db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ message: 'Database error' });
+      }
+
+      let userData = user;
+      
+      if (!user) {
+        // Create new user
+        const newUser = {
+          name: name,
+          email: email,
+          role: email === 'dmweemba@edulution.org' ? 'superadmin' : 'user'
+        };
+
+        const result = await new Promise((resolve, reject) => {
+          db.run('INSERT INTO users (name, email, role) VALUES (?, ?, ?)',
+            [newUser.name, newUser.email, newUser.role],
+            function(err) {
+              if (err) reject(err);
+              newUser.id = this.lastID;
+              resolve(newUser);
+            }
+          );
+        });
+        
+        userData = result;
+      }
+
+      // Generate JWT token
+      const jwtToken = jwt.sign(
+        { id: userData.id, email: userData.email, role: userData.role },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      res.json({
+        token: jwtToken,
+        user: userData
+      });
+    });
+  } catch (error) {
+    console.error('Google login error:', error);
+    res.status(500).json({ message: 'Failed to authenticate with Google' });
+  }
+};
+
 module.exports = {
   register,
-  login
+  login,
+  googleLogin
 }; 

@@ -66,30 +66,49 @@ const User = {
 
       console.log('Updating user in database:', { id, userData }); // Debug log
 
-      db.run(`
-        UPDATE users 
-        SET name = ?, 
-            email = ?, 
-            hourlyRate = ?,
-            career = ?,
-            bankName = ?,
-            branchCode = ?,
-            accountNumber = ?,
-            address = ?,
-            phoneNumber = ?,
-            role = ?
-        WHERE id = ?`,
-        [name, email, hourlyRate, career, bankName, branchCode, accountNumber, address, phoneNumber, role, id],
-        function(err) {
-          if (err) {
-            console.error('Database error:', err); // Debug log
-            reject(err);
-          } else {
-            console.log('Database update successful:', this.changes); // Debug log
-            resolve(this.changes);
-          }
+      // First check if user exists
+      db.get('SELECT * FROM users WHERE id = ?', [id], (err, user) => {
+        if (err) {
+          console.error('Error checking user:', err);
+          return reject(err);
         }
-      );
+        if (!user) {
+          return reject(new Error('User not found'));
+        }
+
+        // Then update the user
+        db.run(`
+          UPDATE users 
+          SET name = ?, 
+              email = ?, 
+              hourlyRate = ?,
+              career = ?,
+              bankName = ?,
+              branchCode = ?,
+              accountNumber = ?,
+              address = ?,
+              phoneNumber = ?,
+              role = ?
+          WHERE id = ?`,
+          [name, email, hourlyRate, career, bankName, branchCode, accountNumber, address, phoneNumber, role, id],
+          function(err) {
+            if (err) {
+              console.error('Database error:', err);
+              reject(err);
+            } else {
+              // Get the updated user data
+              db.get('SELECT * FROM users WHERE id = ?', [id], (err, updatedUser) => {
+                if (err) {
+                  reject(err);
+                } else {
+                  delete updatedUser.password; // Remove sensitive data
+                  resolve(updatedUser);
+                }
+              });
+            }
+          }
+        );
+      });
     });
   },
 
