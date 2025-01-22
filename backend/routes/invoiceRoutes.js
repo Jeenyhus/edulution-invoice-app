@@ -2,9 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { db } = require('../config/db');
 const ExcelJS = require('exceljs');
+const { protect } = require('../middleware/authMiddleware'); // Ensure the route is protected
 
-router.get('/', async (req, res) => {
-  const userId = req.user.id;
+// Update the route to match the frontend request
+router.get('/generate', protect, async (req, res) => {
+  console.log('req.user:', req.user); // Debugging line
+  const userId = req.user.id; // Ensure user ID is correctly retrieved
   const { startDate, endDate } = req.query;
   console.log('Generating invoice for dates:', startDate, endDate);
 

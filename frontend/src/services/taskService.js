@@ -1,6 +1,14 @@
-import api from './api';
+import api, { setAuthToken } from './api';
 
 class TaskService {
+  constructor() {
+    // Set the token when the service is instantiated
+    const token = localStorage.getItem('token');
+    if (token) {
+      setAuthToken(token);
+    }
+  }
+
   async getTasks() {
     try {
       const response = await api.get('/api/tasks');

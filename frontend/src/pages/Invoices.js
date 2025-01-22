@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { invoiceService } from '../services';
+import { invoiceService } from '../services/invoiceService';
 
 function Invoices() {
   const [dateRange, setDateRange] = useState({
@@ -16,9 +16,11 @@ function Invoices() {
 
     setGenerating(true);
     try {
+      const token = localStorage.getItem('token'); // Ensure the token is retrieved from local storage
       const response = await invoiceService.generateInvoice(
         dateRange.startDate,
-        dateRange.endDate
+        dateRange.endDate,
+        token
       );
 
       // Ensure we're getting the blob data correctly
@@ -159,4 +161,4 @@ function Invoices() {
   );
 }
 
-export default Invoices; 
+export default Invoices;
