@@ -1,6 +1,14 @@
-import api from './api';
+import api, { setAuthToken } from './api';
 
 class UserService {
+  constructor() {
+    // Set the token when the service is instantiated
+    const token = localStorage.getItem('token');
+    if (token) {
+      setAuthToken(token);
+    }
+  }
+
   async getProfile() {
     const response = await api.get('/api/users/profile');
     return response.data;
@@ -27,4 +35,4 @@ class UserService {
   }
 }
 
-export const userService = new UserService(); 
+export const userService = new UserService();

@@ -20,6 +20,16 @@ class InvoiceService {
     const response = await api.delete(`/api/invoices/${id}`);
     return response.data;
   }
+
+  async generateInvoice(startDate, endDate, token) {
+    const response = await api.get('/api/invoices/generate', {
+      params: { startDate, endDate },
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response;
+  }
 }
 
-export const invoiceService = new InvoiceService(); 
+export const invoiceService = new InvoiceService();

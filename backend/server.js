@@ -39,6 +39,7 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/departments', require('./routes/departmentRoutes'));
 app.use('/api/settings', require('./routes/settingsRoutes'));
+app.use('/api/invoices', require('./routes/invoiceRoutes'));
 
 // Only start the server if this file is run directly
 if (require.main === module) {

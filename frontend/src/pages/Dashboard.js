@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { calculateEarnings } from '../utils/calculations';
 import { useAuth } from '../contexts/AuthContext';
+import { setAuthToken } from '../services/api';
 
 function Dashboard() {
   const [userData, setUserData] = useState(null);
@@ -103,6 +104,11 @@ function Dashboard() {
   }, [calculateDashboardStats]);
 
   useEffect(() => {
+    // Set the auth token when the component mounts
+    const token = localStorage.getItem('token');
+    if (token) {
+      setAuthToken(token);
+    }
     fetchData();
   }, [fetchData]);
 
@@ -367,4 +373,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard; 
+export default Dashboard;
