@@ -3,7 +3,6 @@ const { initializeDb } = require('./config/db');
 
 console.log('Starting worker to run initialization scripts...');
 
-// Initialize database first
 initializeDb()
   .then(() => {
     console.log('Database initialized successfully');
@@ -13,11 +12,10 @@ initializeDb()
       'createAdminUser.js',
     ];
 
-    // Run scripts sequentially
     const runScript = (index) => {
       if (index >= scripts.length) {
         console.log('All initialization scripts completed successfully');
-        process.exit(0);
+        process.exit(0); // This exits the process, which is fine for build phase
       }
 
       const script = scripts[index];
