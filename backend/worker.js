@@ -1,42 +1,43 @@
 const { exec } = require('child_process');
 const { initializeDb } = require('./config/db');
 
-console.log('Starting worker to run scripts...');
+console.log('Starting worker to run initialization scripts...');
 
 // Initialize database first
 initializeDb()
   .then(() => {
-    console.log('Database initialized, running scripts...');
+    console.log('Database initialized successfully');
     const scripts = [
       'setupDepartmentsAndCareers.js',
       'migrateUsers.js',
-      'createAdminUser.js'
+      'createAdminUser.js',
     ];
 
     // Run scripts sequentially
     const runScript = (index) => {
       if (index >= scripts.length) {
-        console.log('All scripts completed');
-        process.exit(0); // Exit worker after completion
+        console.log('All initialization scripts completed successfully');
+        process.exit(0);
       }
 
       const script = scripts[index];
-      console.log(`Running ${script}...`);
+      console.log(`Executing ${script}...`);
       exec(`node scripts/${script}`, (error, stdout, stderr) => {
         if (error) {
-          console.error(`Error in ${script}: ${error.message}`);
+          console.error(`Error executing ${script}: ${error.message}`);
+          process.exit(1);
         }
         if (stderr) {
-          console.error(`Stderr in ${script}: ${stderr}`);
+          console.warn(`Warnings in ${script}: ${stderr}`);
         }
-        console.log(`${script} output: ${stdout}`);
-        runScript(index + 1); // Run next script
+        console.log(`${script} completed: ${stdout}`);
+        runScript(index + 1);
       });
     };
 
-    runScript(0); // Start with first script
+    runScript(0);
   })
-  .catch(err => {
+  .catch((err) => {
     console.error('Database initialization failed:', err);
     process.exit(1);
   });
